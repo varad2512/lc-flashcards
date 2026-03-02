@@ -699,7 +699,11 @@ html, body {
     position: relative;
     transform: none;
     backface-visibility: visible;
+    -webkit-backface-visibility: visible;
   }
+
+  /* Remove 3D transform on mobile entirely - just show/hide */
+  .card-inner { transform: none !important; transition: none !important; }
 
   .card-title { font-size: 22px; }
   .card-tagline { font-size: 13px; line-height: 1.6; }
