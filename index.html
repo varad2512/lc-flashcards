@@ -1,0 +1,2120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>NeetCode 150 — Pattern Flashcards</title>
+
+<!-- PWA manifest -->
+<link rel="manifest" href="manifest.json">
+
+<!-- iOS PWA support -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="NC Flashcards">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+
+<!-- Theme + favicon -->
+<meta name="theme-color" content="#080c14">
+<link rel="icon" type="image/png" href="icons/favicon.png">
+
+<!-- SEO / sharing -->
+<meta name="description" content="LeetCode pattern flashcards for IC5/IC6 interview prep — NeetCode 150">
+<meta name="mobile-web-app-capable" content="yes">
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Clash+Display:wght@500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* ── Base palette: deep navy-black, not pure black ── */
+  --bg:           #080c14;
+  --surface:      #0d1220;
+  --surface-2:    #111827;
+  --card-bg:      #0f1624;
+  --card-bg-2:    #131d2e;
+
+  /* ── Borders: visible but not harsh ── */
+  --border:        #1e2d45;
+  --border-bright: #2a3f5f;
+  --border-hover:  #3a5478;
+
+  /* ── Text: high contrast hierarchy ── */
+  --text:          #e8edf5;        /* primary — near white, slightly cool */
+  --text-secondary: #94a3b8;       /* secondary — clearly readable slate */
+  --text-tertiary:  #64748b;       /* tertiary — muted labels */
+  --text-dim:       #3d5068;       /* very muted — decorative only */
+
+  /* ── Accent palette: distinct, vivid, harmonious ── */
+  --c-arrays:    #22d3ee;   /* cyan       */
+  --c-twoptr:    #34d399;   /* emerald    */
+  --c-sliding:   #818cf8;   /* indigo     */
+  --c-stack:     #f472b6;   /* pink       */
+  --c-binary:    #fb923c;   /* orange     */
+  --c-linked:    #fcd34d;   /* amber      */
+  --c-trees:     #4ade80;   /* green      */
+  --c-heap:      #f87171;   /* red        */
+  --c-backtrack: #60a5fa;   /* blue       */
+  --c-graphs:    #c084fc;   /* purple     */
+  --c-dp1d:      #2dd4bf;   /* teal       */
+  --c-dp2d:      #38bdf8;   /* sky        */
+  --c-greedy:    #facc15;   /* yellow     */
+  --c-intervals: #fb7185;   /* rose       */
+  --c-math:      #a78bfa;   /* violet     */
+  --c-bits:      #fdba74;   /* peach      */
+  --c-advanced:  #86efac;   /* light-grn  */
+
+  /* ── Semantic ── */
+  --ok:     #34d399;
+  --warn:   #fbbf24;
+  --fail:   #f87171;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Subtle noise texture overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.4;
+}
+
+/* ─── LAYOUT ─── */
+.app { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+
+/* ─── SIDEBAR ─── */
+.sidebar {
+  width: 236px;
+  min-width: 236px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 0;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+.sidebar::-webkit-scrollbar { width: 3px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 2px; }
+
+.sidebar-header {
+  padding: 22px 20px 18px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+}
+
+.logo {
+  font-family: 'Outfit', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--text);
+  line-height: 1;
+}
+
+.logo span { color: var(--c-arrays); }
+
+.sidebar-sub {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-secondary);   /* ← WAS --muted (too dark), now clearly visible */
+  letter-spacing: 0.08em;
+  margin-top: 5px;
+  font-weight: 400;
+}
+
+.cat-section-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  color: var(--text-tertiary);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 14px 20px 6px;
+}
+
+.cat-btn {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 8px 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  border-left: 2px solid transparent;
+  transition: all 0.12s ease;
+}
+
+.cat-btn:hover {
+  background: rgba(255,255,255,0.04);
+  border-left-color: var(--border-hover);
+}
+
+.cat-btn.active {
+  background: rgba(255,255,255,0.06);
+  border-left-color: var(--cat-color, var(--c-arrays));
+}
+
+.cat-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+.cat-name {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 12.5px;
+  color: var(--text-secondary);    /* ← Clearly readable now */
+  font-weight: 400;
+  flex: 1;
+  transition: color 0.12s;
+}
+
+.cat-btn.active .cat-name,
+.cat-btn:hover .cat-name {
+  color: var(--text);
+}
+
+.cat-count {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-tertiary);
+  background: var(--surface-2);
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+
+.cat-mastered {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 600;
+}
+
+/* ─── MAIN ─── */
+.main {
+  margin-left: 236px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ─── TOP BAR ─── */
+.topbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 36px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.topbar-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text-secondary);    /* ← Secondary context label */
+}
+
+.topbar-title span {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.topbar-right { display: flex; align-items: center; gap: 20px; }
+
+.progress-mini { display: flex; align-items: center; gap: 10px; }
+
+.progress-track {
+  width: 140px; height: 4px;
+  background: var(--border-bright);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--c-arrays), var(--c-sliding));
+  transition: width 0.5s ease;
+  box-shadow: 0 0 8px rgba(34,211,238,0.4);
+}
+
+.progress-text {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-secondary);    /* ← visible progress text */
+  font-weight: 500;
+}
+
+/* ─── CARD AREA ─── */
+.card-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 36px;
+  background: var(--bg);
+}
+
+/* ─── FLASHCARD ─── */
+.card-wrap {
+  width: 100%;
+  max-width: 780px;
+  perspective: 1400px;
+  cursor: pointer;
+  margin-bottom: 22px;
+}
+
+.card-inner {
+  position: relative;
+  width: 100%;
+  min-height: 420px;
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.35, 0, 0.15, 1);
+}
+
+.card-inner.flipped { transform: rotateY(180deg); }
+
+.card-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  padding: 32px 36px;
+  display: flex;
+  flex-direction: column;
+  min-height: 420px;
+  /* Subtle depth gradient */
+  background: linear-gradient(145deg, var(--card-bg-2) 0%, var(--card-bg) 60%);
+  box-shadow:
+    0 1px 2px rgba(0,0,0,0.4),
+    0 4px 16px rgba(0,0,0,0.3),
+    inset 0 1px 0 rgba(255,255,255,0.04);
+}
+
+.card-face.back { transform: rotateY(180deg); }
+
+/* Front card */
+.card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 22px;
+}
+
+.card-category-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid;
+}
+
+.card-lc {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-secondary);    /* ← Problem number clearly visible */
+  letter-spacing: 0.05em;
+  font-weight: 500;
+}
+
+.card-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(26px, 4vw, 36px);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  margin-bottom: 14px;
+  color: var(--text);
+}
+
+.card-tagline {
+  font-size: 14.5px;
+  color: var(--text-secondary);    /* ← Problem description clearly readable */
+  line-height: 1.75;
+  flex: 1;
+  font-weight: 400;
+}
+
+.card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 22px;
+}
+
+.tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border-bright);
+  color: var(--text-secondary);    /* ← Tags visible */
+  transition: all 0.12s;
+}
+
+.flip-hint {
+  margin-top: 22px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-tertiary);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: pulse-hint 2.5s ease-in-out infinite;
+}
+
+@keyframes pulse-hint {
+  0%, 100% { opacity: 0.5; }
+  50%       { opacity: 1; }
+}
+
+.flip-hint::before {
+  content: '↻';
+  font-size: 13px;
+}
+
+/* Back card */
+.back-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  color: var(--text-secondary);    /* ← Back label visible */
+}
+
+.code-wrap {
+  flex: 1;
+  background: #060a12;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px 22px;
+  overflow: auto;
+  box-shadow: inset 0 2px 8px rgba(0,0,0,0.4);
+}
+
+.code-wrap pre {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12.5px;
+  line-height: 1.85;
+  color: #c8d0e0;     /* ← Brighter base code color */
+  white-space: pre;
+  margin: 0;
+}
+
+/* Richer syntax colors on dark bg */
+.kw { color: #c792ea; }           /* purple  — keywords  */
+.fn { color: #82aaff; }           /* blue    — functions */
+.cm { color: #546e7a; font-style: italic; }  /* slate  — comments */
+.st { color: #c3e88d; }           /* green   — strings  */
+.nm { color: #f78c6c; }           /* orange  — numbers  */
+.op { color: #89ddff; }           /* cyan    — operators*/
+.cl { color: #ffcb6b; }           /* yellow  — classes  */
+
+.insight-box {
+  margin-top: 14px;
+  padding: 13px 16px;
+  background: rgba(34,211,238,0.05);
+  border: 1px solid rgba(34,211,238,0.12);
+  border-left: 3px solid var(--accent-cur, var(--c-arrays));
+  border-radius: 0 6px 6px 0;
+  font-size: 13px;
+  color: var(--text-secondary);   /* ← Insight text clearly readable */
+  line-height: 1.65;
+}
+
+.insight-box strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* ─── CONTROLS ─── */
+.controls {
+  width: 100%;
+  max-width: 780px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+
+.ctrl-row { display: flex; align-items: center; gap: 12px; }
+
+.btn {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 9px 22px;
+  border-radius: 6px;
+  border: 1px solid var(--border-bright);
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn:hover {
+  border-color: var(--border-hover);
+  color: var(--text);
+  background: rgba(255,255,255,0.06);
+}
+
+.btn:disabled { opacity: 0.2; cursor: not-allowed; }
+
+.btn-flip {
+  background: rgba(34,211,238,0.08);
+  border: 1px solid rgba(34,211,238,0.25);
+  color: var(--c-arrays);
+  padding: 9px 40px;
+  border-radius: 6px;
+  box-shadow: 0 0 12px rgba(34,211,238,0.08);
+}
+
+.btn-flip:hover {
+  background: rgba(34,211,238,0.14);
+  box-shadow: 0 0 18px rgba(34,211,238,0.15);
+  color: var(--c-arrays);
+}
+
+.card-pos {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--text-secondary);    /* ← Card counter visible */
+  font-weight: 500;
+  min-width: 60px;
+  text-align: center;
+}
+
+.mastery-row {
+  display: flex;
+  gap: 10px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+.mastery-row.show { opacity: 1; pointer-events: auto; }
+
+.btn-again {
+  border-color: rgba(248,113,113,0.35);
+  color: #fca5a5;
+  background: rgba(248,113,113,0.07);
+}
+.btn-again:hover { background: rgba(248,113,113,0.14); color: #fca5a5; }
+
+.btn-got {
+  border-color: rgba(52,211,153,0.35);
+  color: #6ee7b7;
+  background: rgba(52,211,153,0.07);
+}
+.btn-got:hover { background: rgba(52,211,153,0.14); color: #6ee7b7; }
+
+.btn-hard {
+  border-color: rgba(251,191,36,0.35);
+  color: #fde68a;
+  background: rgba(251,191,36,0.07);
+}
+.btn-hard:hover { background: rgba(251,191,36,0.14); color: #fde68a; }
+
+/* ─── STATS BAR ─── */
+.stats-bar {
+  margin-top: 24px;
+  width: 100%;
+  max-width: 780px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--border);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+}
+
+.stat-cell {
+  background: var(--surface-2);
+  padding: 14px 16px;
+  text-align: center;
+}
+
+.stat-n {
+  font-family: 'Outfit', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.stat-l {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  color: var(--text-tertiary);     /* ← Stat labels tertiary - still readable */
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-top: 5px;
+  font-weight: 400;
+}
+
+/* Kbd shortcuts */
+.kbd-row {
+  margin-top: 10px;
+  display: flex;
+  gap: 18px;
+  justify-content: center;
+}
+
+.kbd-hint {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-tertiary);     /* ← Keyboard hints tertiary but legible */
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+kbd {
+  background: var(--surface-2);
+  border: 1px solid var(--border-bright);
+  border-radius: 3px;
+  padding: 1px 7px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-secondary);    /* ← Keys themselves clearly visible */
+  box-shadow: 0 1px 0 var(--border-bright);
+}
+
+/* Difficulty */
+.diff-e { color: #86efac; }
+.diff-m { color: #fde68a; }
+.diff-h { color: #fca5a5; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 3px; }
+
+/* Mobile */
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .main { margin-left: 0; }
+  .card-area { padding: 20px 16px; }
+  .stats-bar { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ── PWA / iOS specific ───────────────────────────────────────────────── */
+
+/* Safe area insets for iPhone notch + home bar */
+body {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* CRITICAL: prevent any horizontal overflow */
+*, *::before, *::after {
+  max-width: 100%;
+}
+
+html, body {
+  overflow-x: hidden;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
+}
+
+/* Prevent text selection during card swipes */
+.card-wrap, .controls, .sidebar {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ── Mobile layout ─────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .topbar { padding: 10px 14px; }
+  .topbar-title { font-size: 15px; }
+  .progress-track { width: 90px; }
+
+  .card-area {
+    padding: 12px 12px 100px;
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  .card-wrap {
+    width: 100%;
+    max-width: 100%;
+    margin-bottom: 14px;
+  }
+
+  .card-inner { min-height: 0; }
+
+  .card-face {
+    position: relative;          /* ← not absolute on mobile, let height be natural */
+    padding: 18px 16px;
+    min-height: 0;
+    border-radius: 10px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Make back face stack under front when not flipped (mobile 3d workaround) */
+  .card-inner:not(.flipped) .card-face.back { display: none; }
+  .card-inner.flipped .card-face.front      { display: none; }
+  .card-inner.flipped .card-face.back {
+    position: relative;
+    transform: none;
+    backface-visibility: visible;
+  }
+
+  .card-title { font-size: 22px; }
+  .card-tagline { font-size: 13px; line-height: 1.6; }
+  .card-category-tag { font-size: 9px; }
+  .card-lc { font-size: 10px; }
+
+  /* Code block — wrap instead of scroll horizontally */
+  .code-wrap {
+    padding: 12px 14px;
+    border-radius: 6px;
+    overflow-x: auto;            /* allow scroll but contained */
+    max-width: 100%;
+  }
+
+  .code-wrap pre {
+    font-size: 11px;
+    line-height: 1.7;
+    white-space: pre-wrap;       /* ← KEY FIX: wrap long lines */
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  .insight-box {
+    font-size: 12px;
+    padding: 10px 12px;
+    margin-top: 10px;
+  }
+
+  .card-tags { margin-top: 14px; gap: 5px; }
+  .tag { font-size: 9px; padding: 3px 8px; }
+  .flip-hint { font-size: 9px; margin-top: 14px; }
+  .back-label { font-size: 9px; margin-bottom: 8px; }
+
+  /* Hide desktop controls */
+  .controls { display: none; }
+  .kbd-row  { display: none; }
+
+  .stats-bar {
+    margin-top: 10px;
+    border-radius: 8px;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .stat-n { font-size: 20px; }
+  .stat-l { font-size: 8px; }
+  .stat-cell { padding: 10px 12px; }
+
+  /* Show mobile nav */
+  .mobile-nav { display: flex !important; }
+  .mobile-cat-strip { display: flex; }
+}
+
+@media (min-width: 769px) {
+  .mobile-nav { display: none !important; }
+}
+
+/* Mobile bottom navigation */
+.mobile-nav {
+  display: none;
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 12px 16px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  flex-direction: column;
+  gap: 10px;
+  z-index: 200;
+}
+
+.mobile-nav-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.mobile-mastery {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s;
+  height: 0;
+  overflow: hidden;
+  transition: opacity 0.25s, height 0.25s;
+}
+
+.mobile-mastery.show {
+  opacity: 1;
+  pointer-events: auto;
+  height: auto;
+}
+
+.mbtn {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 10px 0;
+  border-radius: 8px;
+  border: 1px solid var(--border-bright);
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  cursor: pointer;
+  flex: 1;
+  text-align: center;
+  letter-spacing: 0.05em;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.12s;
+  min-height: 44px; /* iOS minimum tap target */
+}
+
+.mbtn:active { transform: scale(0.96); }
+.mbtn:disabled { opacity: 0.2; }
+
+.mbtn-flip {
+  background: rgba(34,211,238,0.08);
+  border-color: rgba(34,211,238,0.25);
+  color: var(--c-arrays);
+  flex: 2;
+}
+
+.mbtn-again { border-color: rgba(248,113,113,0.35); color: #fca5a5; background: rgba(248,113,113,0.07); flex: 1; }
+.mbtn-hard  { border-color: rgba(251,191,36,0.35);  color: #fde68a; background: rgba(251,191,36,0.07);  flex: 1; }
+.mbtn-got   { border-color: rgba(52,211,153,0.35);  color: #6ee7b7; background: rgba(52,211,153,0.07);  flex: 1; }
+
+/* Mobile category filter (horizontal scroll strip) */
+.mobile-cat-strip {
+  display: none;
+  overflow-x: auto;
+  gap: 8px;
+  padding: 0 14px 8px;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mobile-cat-strip::-webkit-scrollbar { display: none; }
+
+@media (max-width: 768px) {
+  .mobile-cat-strip { display: flex; }
+}
+
+.mcat-pill {
+  flex-shrink: 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border-bright);
+  background: var(--surface-2);
+  color: var(--text-tertiary);
+  cursor: pointer;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.12s;
+}
+
+.mcat-pill.active {
+  color: var(--text);
+  border-color: var(--pill-color, var(--c-arrays));
+  background: rgba(34,211,238,0.08);
+}
+
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">NEET<span>CODE</span></div>
+    <div class="sidebar-sub">150 · Pattern Flashcards</div>
+  </div>
+  <div id="catList"></div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="topbarTitle">ALL <span id="topbarCat">PATTERNS</span></div>
+    <div class="topbar-right">
+      <div class="progress-mini">
+        <div class="progress-track"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
+        <div class="progress-text" id="progText">0 / 0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile category strip (visible only on phone) -->
+  <div class="mobile-cat-strip" id="mobileCatStrip"></div>
+
+  <div class="card-area">
+    <!-- Card -->
+    <div class="card-wrap" id="cardWrap" onclick="flip()">
+      <div class="card-inner" id="cardInner">
+        <div class="card-face front" id="cardFront"></div>
+        <div class="card-face back"  id="cardBack"></div>
+      </div>
+    </div>
+
+    <!-- Desktop Controls (hidden on mobile) -->
+    <div class="controls">
+      <div class="ctrl-row">
+        <button class="btn" id="prevBtn" onclick="prev()">← PREV</button>
+        <span class="card-pos" id="cardPos"></span>
+        <button class="btn btn-flip" onclick="flip()">FLIP</button>
+        <span class="card-pos"></span>
+        <button class="btn" id="nextBtn" onclick="next()">NEXT →</button>
+      </div>
+      <div class="mastery-row" id="masteryRow">
+        <button class="btn btn-again" onclick="rate(0)">✗ AGAIN</button>
+        <button class="btn btn-hard"  onclick="rate(1)">~ HARD</button>
+        <button class="btn btn-got"   onclick="rate(2)">✓ GOT IT</button>
+      </div>
+      <div class="kbd-row">
+        <span class="kbd-hint"><kbd>Space</kbd> flip</span>
+        <span class="kbd-hint"><kbd>←</kbd><kbd>→</kbd> navigate</span>
+        <span class="kbd-hint"><kbd>1</kbd> again <kbd>2</kbd> hard <kbd>3</kbd> got it</span>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-bar">
+      <div class="stat-cell"><div class="stat-n" id="sTotal">0</div><div class="stat-l">Total</div></div>
+      <div class="stat-cell"><div class="stat-n diff-e" id="sMastered">0</div><div class="stat-l">Mastered</div></div>
+      <div class="stat-cell"><div class="stat-n diff-m" id="sHard">0</div><div class="stat-l">Hard</div></div>
+      <div class="stat-cell"><div class="stat-n diff-h" id="sAgain">0</div><div class="stat-l">Again</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Mobile bottom nav (visible only on phone) -->
+<div class="mobile-nav" id="mobileNav">
+  <div class="mobile-mastery" id="mobileMastery">
+    <button class="mbtn mbtn-again" onclick="rate(0)">✗ Again</button>
+    <button class="mbtn mbtn-hard"  onclick="rate(1)">~ Hard</button>
+    <button class="mbtn mbtn-got"   onclick="rate(2)">✓ Got It</button>
+  </div>
+  <div class="mobile-nav-row">
+    <button class="mbtn" id="mPrevBtn" onclick="prev()">←</button>
+    <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-secondary);min-width:54px;text-align:center" id="mCardPos"></span>
+    <button class="mbtn mbtn-flip" onclick="flip()">↻ Flip</button>
+    <span style="min-width:54px"></span>
+    <button class="mbtn" id="mNextBtn" onclick="next()">→</button>
+  </div>
+</div>
+</div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────────────────────
+const CATS = [
+  { id:'arrays',    name:'Arrays & Hashing',   color:'#38bdf8', short:'A&H' },
+  { id:'twoptr',    name:'Two Pointers',        color:'#34d399', short:'2P' },
+  { id:'sliding',   name:'Sliding Window',      color:'#a78bfa', short:'SW' },
+  { id:'stack',     name:'Stack',               color:'#f472b6', short:'STK' },
+  { id:'binary',    name:'Binary Search',       color:'#fb923c', short:'BS' },
+  { id:'linked',    name:'Linked List',         color:'#facc15', short:'LL' },
+  { id:'trees',     name:'Trees',               color:'#4ade80', short:'TR' },
+  { id:'heap',      name:'Heap / Priority Q',   color:'#f87171', short:'HP' },
+  { id:'backtrack', name:'Backtracking',        color:'#60a5fa', short:'BT' },
+  { id:'graphs',    name:'Graphs',              color:'#e879f9', short:'GR' },
+  { id:'dp1d',      name:'1D Dynamic Prog.',    color:'#34d399', short:'DP1' },
+  { id:'dp2d',      name:'2D Dynamic Prog.',    color:'#38bdf8', short:'DP2' },
+  { id:'greedy',    name:'Greedy',              color:'#fbbf24', short:'GD' },
+  { id:'intervals', name:'Intervals',           color:'#f472b6', short:'INT' },
+  { id:'math',      name:'Math & Geometry',     color:'#a78bfa', short:'MTH' },
+  { id:'bits',      name:'Bit Manipulation',    color:'#fb923c', short:'BIT' },
+  { id:'advanced',  name:'Advanced Graphs',     color:'#4ade80', short:'ADV' },
+];
+
+const CARDS = [
+// ─── ARRAYS & HASHING ───────────────────────────────────────────────────────
+{cat:'arrays',lc:'LC 217',d:'easy',title:'Contains Duplicate',
+ tagline:'Detect any duplicate value in an unsorted array.',
+ tags:['hashset','O(n)'],
+ insight:'Add each num to a set. If already present → return True. One pass O(n).',
+ code:`<span class="kw">def</span> <span class="fn">hasDuplicate</span>(nums):
+    seen = <span class="fn">set</span>()
+    <span class="kw">for</span> n <span class="kw">in</span> nums:
+        <span class="kw">if</span> n <span class="kw">in</span> seen: <span class="kw">return True</span>
+        seen.<span class="fn">add</span>(n)
+    <span class="kw">return False</span>`},
+
+{cat:'arrays',lc:'LC 242',d:'easy',title:'Valid Anagram',
+ tagline:'Check if two strings contain the same characters with same frequencies.',
+ tags:['frequency map','Counter'],
+ insight:'Count character frequencies of both strings. If maps are equal → anagram.',
+ code:`<span class="kw">def</span> <span class="fn">isAnagram</span>(s, t):
+    <span class="kw">if</span> <span class="fn">len</span>(s) <span class="op">!=</span> <span class="fn">len</span>(t): <span class="kw">return False</span>
+    <span class="kw">return</span> Counter(s) <span class="op">==</span> Counter(t)
+
+<span class="cm"># Manual: count[ord(c)-ord('a')] ±= 1</span>`},
+
+{cat:'arrays',lc:'LC 1',d:'easy',title:'Two Sum',
+ tagline:'Find indices of two numbers that add to target.',
+ tags:['hashmap','complement'],
+ insight:'Store each num → index in hashmap. For each num, check if (target - num) already in map.',
+ code:`<span class="kw">def</span> <span class="fn">twoSum</span>(nums, target):
+    seen = {}  <span class="cm"># val → index</span>
+    <span class="kw">for</span> i, n <span class="kw">in</span> <span class="fn">enumerate</span>(nums):
+        diff = target <span class="op">-</span> n
+        <span class="kw">if</span> diff <span class="kw">in</span> seen:
+            <span class="kw">return</span> [seen[diff], i]
+        seen[n] = i`},
+
+{cat:'arrays',lc:'LC 49',d:'medium',title:'Group Anagrams',
+ tagline:'Group strings that are anagrams of each other.',
+ tags:['sorted key','defaultdict'],
+ insight:'Key = sorted string. Group all strings with same sorted key into a list.',
+ code:`<span class="kw">def</span> <span class="fn">groupAnagrams</span>(strs):
+    groups = defaultdict(<span class="fn">list</span>)
+    <span class="kw">for</span> s <span class="kw">in</span> strs:
+        key = <span class="fn">tuple</span>(<span class="fn">sorted</span>(s))
+        groups[key].<span class="fn">append</span>(s)
+    <span class="kw">return list</span>(groups.<span class="fn">values</span>())
+
+<span class="cm"># Alt key: tuple of 26-char counts → O(n*m)</span>`},
+
+{cat:'arrays',lc:'LC 347',d:'medium',title:'Top K Frequent Elements',
+ tagline:'Return k most frequent elements — beat O(n log n).',
+ tags:['bucket sort','freq array'],
+ insight:'Bucket sort by frequency. Bucket[i] = all nums appearing i times. Scan from end.',
+ code:`<span class="kw">def</span> <span class="fn">topKFrequent</span>(nums, k):
+    freq = [[] <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(nums)<span class="op">+</span><span class="nm">1</span>)]
+    <span class="kw">for</span> n, c <span class="kw">in</span> Counter(nums).<span class="fn">items</span>():
+        freq[c].<span class="fn">append</span>(n)
+    res = []
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(freq)<span class="op">-</span><span class="nm">1</span>, <span class="nm">0</span>, <span class="op">-</span><span class="nm">1</span>):
+        res.<span class="fn">extend</span>(freq[i])
+        <span class="kw">if</span> <span class="fn">len</span>(res) <span class="op">>=</span> k: <span class="kw">return</span> res[:k]`},
+
+{cat:'arrays',lc:'LC 238',d:'medium',title:'Product of Array Except Self',
+ tagline:'O(n) no division: product of all elements except index i.',
+ tags:['prefix product','suffix product'],
+ insight:'Pass 1: prefix[i] = product of all left. Pass 2: multiply suffix from right. No division needed.',
+ code:`<span class="kw">def</span> <span class="fn">productExceptSelf</span>(nums):
+    res = [<span class="nm">1</span>] <span class="op">*</span> <span class="fn">len</span>(nums)
+    <span class="cm"># Left pass: prefix</span>
+    prefix = <span class="nm">1</span>
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(nums)):
+        res[i] = prefix
+        prefix <span class="op">*=</span> nums[i]
+    <span class="cm"># Right pass: suffix</span>
+    suffix = <span class="nm">1</span>
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(nums)<span class="op">-</span><span class="nm">1</span>, <span class="op">-</span><span class="nm">1</span>, <span class="op">-</span><span class="nm">1</span>):
+        res[i] <span class="op">*=</span> suffix
+        suffix <span class="op">*=</span> nums[i]
+    <span class="kw">return</span> res`},
+
+{cat:'arrays',lc:'LC 128',d:'medium',title:'Longest Consecutive Sequence',
+ tagline:'Find longest run of consecutive integers in O(n).',
+ tags:['hashset','start detection'],
+ insight:'Only start a sequence from n where (n-1) not in set. Count forward. O(n) amortized.',
+ code:`<span class="kw">def</span> <span class="fn">longestConsecutive</span>(nums):
+    s = <span class="fn">set</span>(nums)
+    res = <span class="nm">0</span>
+    <span class="kw">for</span> n <span class="kw">in</span> s:
+        <span class="kw">if</span> (n<span class="op">-</span><span class="nm">1</span>) <span class="kw">not in</span> s:  <span class="cm"># start of seq</span>
+            length = <span class="nm">1</span>
+            <span class="kw">while</span> (n<span class="op">+</span>length) <span class="kw">in</span> s:
+                length <span class="op">+=</span> <span class="nm">1</span>
+            res = <span class="fn">max</span>(res, length)
+    <span class="kw">return</span> res`},
+
+// ─── TWO POINTERS ────────────────────────────────────────────────────────────
+{cat:'twoptr',lc:'LC 125',d:'easy',title:'Valid Palindrome',
+ tagline:'Check if string reads same forwards and backwards (alphanumeric only).',
+ tags:['two pointers','inward scan'],
+ insight:'L=0, R=end. Skip non-alphanumeric. Compare chars. If mismatch → False.',
+ code:`<span class="kw">def</span> <span class="fn">isPalindrome</span>(s):
+    l, r = <span class="nm">0</span>, <span class="fn">len</span>(s)<span class="op">-</span><span class="nm">1</span>
+    <span class="kw">while</span> l <span class="op"><</span> r:
+        <span class="kw">while</span> l <span class="op"><</span> r <span class="kw">and not</span> s[l].<span class="fn">isalnum</span>(): l <span class="op">+=</span> <span class="nm">1</span>
+        <span class="kw">while</span> l <span class="op"><</span> r <span class="kw">and not</span> s[r].<span class="fn">isalnum</span>(): r <span class="op">-=</span> <span class="nm">1</span>
+        <span class="kw">if</span> s[l].<span class="fn">lower</span>() <span class="op">!=</span> s[r].<span class="fn">lower</span>():
+            <span class="kw">return False</span>
+        l <span class="op">+=</span> <span class="nm">1</span>; r <span class="op">-=</span> <span class="nm">1</span>
+    <span class="kw">return True</span>`},
+
+{cat:'twoptr',lc:'LC 15',d:'medium',title:'3Sum',
+ tagline:'Find all unique triplets summing to zero.',
+ tags:['sort','fix+two-ptr','skip dupes'],
+ insight:'Sort. Fix i, two-pointer on remainder. Skip duplicate values at both levels.',
+ code:`<span class="kw">def</span> <span class="fn">threeSum</span>(nums):
+    nums.<span class="fn">sort</span>(); res = []
+    <span class="kw">for</span> i, a <span class="kw">in</span> <span class="fn">enumerate</span>(nums):
+        <span class="kw">if</span> i <span class="op">></span> <span class="nm">0</span> <span class="kw">and</span> a <span class="op">==</span> nums[i<span class="op">-</span><span class="nm">1</span>]: <span class="kw">continue</span>
+        l, r = i<span class="op">+</span><span class="nm">1</span>, <span class="fn">len</span>(nums)<span class="op">-</span><span class="nm">1</span>
+        <span class="kw">while</span> l <span class="op"><</span> r:
+            s = a <span class="op">+</span> nums[l] <span class="op">+</span> nums[r]
+            <span class="kw">if</span>   s <span class="op">></span> <span class="nm">0</span>: r <span class="op">-=</span> <span class="nm">1</span>
+            <span class="kw">elif</span> s <span class="op"><</span> <span class="nm">0</span>: l <span class="op">+=</span> <span class="nm">1</span>
+            <span class="kw">else</span>:
+                res.<span class="fn">append</span>([a,nums[l],nums[r]])
+                l <span class="op">+=</span> <span class="nm">1</span>
+                <span class="kw">while</span> l<span class="op"><</span>r <span class="kw">and</span> nums[l]<span class="op">==</span>nums[l<span class="op">-</span><span class="nm">1</span>]: l<span class="op">+=</span><span class="nm">1</span>
+    <span class="kw">return</span> res`},
+
+{cat:'twoptr',lc:'LC 11',d:'medium',title:'Container With Most Water',
+ tagline:'Max water contained between two vertical lines.',
+ tags:['two pointers','greedy shrink'],
+ insight:'L=0, R=end. Area = min(h[L],h[R])*(R-L). Move the shorter side inward — it\'s the bottleneck.',
+ code:`<span class="kw">def</span> <span class="fn">maxArea</span>(height):
+    l, r = <span class="nm">0</span>, <span class="fn">len</span>(height)<span class="op">-</span><span class="nm">1</span>
+    res = <span class="nm">0</span>
+    <span class="kw">while</span> l <span class="op"><</span> r:
+        area = <span class="fn">min</span>(height[l], height[r]) <span class="op">*</span> (r<span class="op">-</span>l)
+        res = <span class="fn">max</span>(res, area)
+        <span class="cm"># Move shorter side — longer side can't help</span>
+        <span class="kw">if</span> height[l] <span class="op"><</span> height[r]: l <span class="op">+=</span> <span class="nm">1</span>
+        <span class="kw">else</span>:                         r <span class="op">-=</span> <span class="nm">1</span>
+    <span class="kw">return</span> res`},
+
+{cat:'twoptr',lc:'LC 42',d:'hard',title:'Trapping Rain Water',
+ tagline:'Compute water trapped between bars after rain.',
+ tags:['two pointers','maxL maxR'],
+ insight:'Track maxLeft and maxRight. Water at i = min(maxL,maxR) - height[i]. Move the side with smaller max.',
+ code:`<span class="kw">def</span> <span class="fn">trap</span>(height):
+    l, r = <span class="nm">0</span>, <span class="fn">len</span>(height)<span class="op">-</span><span class="nm">1</span>
+    maxL = maxR = water = <span class="nm">0</span>
+    <span class="kw">while</span> l <span class="op"><</span> r:
+        <span class="kw">if</span> maxL <span class="op"><=</span> maxR:
+            maxL = <span class="fn">max</span>(maxL, height[l])
+            water <span class="op">+=</span> maxL <span class="op">-</span> height[l]
+            l <span class="op">+=</span> <span class="nm">1</span>
+        <span class="kw">else</span>:
+            maxR = <span class="fn">max</span>(maxR, height[r])
+            water <span class="op">+=</span> maxR <span class="op">-</span> height[r]
+            r <span class="op">-=</span> <span class="nm">1</span>
+    <span class="kw">return</span> water`},
+
+// ─── SLIDING WINDOW ──────────────────────────────────────────────────────────
+{cat:'sliding',lc:'LC 121',d:'easy',title:'Best Time to Buy/Sell Stock',
+ tagline:'Max profit from one buy and one sell.',
+ tags:['sliding window','track min'],
+ insight:'Track running minimum (buy price). At each day, profit = price - minSoFar. Update max profit.',
+ code:`<span class="kw">def</span> <span class="fn">maxProfit</span>(prices):
+    minPrice = <span class="fn">float</span>(<span class="st">'inf'</span>)
+    maxProfit = <span class="nm">0</span>
+    <span class="kw">for</span> p <span class="kw">in</span> prices:
+        minPrice = <span class="fn">min</span>(minPrice, p)
+        maxProfit = <span class="fn">max</span>(maxProfit, p <span class="op">-</span> minPrice)
+    <span class="kw">return</span> maxProfit`},
+
+{cat:'sliding',lc:'LC 3',d:'medium',title:'Longest Substring No Repeat',
+ tagline:'Longest window where all characters are unique.',
+ tags:['hashset','expand+shrink'],
+ insight:'Expand right. If duplicate found, shrink left until removed. Track max window size.',
+ code:`<span class="kw">def</span> <span class="fn">lengthOfLongestSubstring</span>(s):
+    seen = <span class="fn">set</span>(); l = res = <span class="nm">0</span>
+    <span class="kw">for</span> r <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(s)):
+        <span class="kw">while</span> s[r] <span class="kw">in</span> seen:
+            seen.<span class="fn">remove</span>(s[l]); l <span class="op">+=</span> <span class="nm">1</span>
+        seen.<span class="fn">add</span>(s[r])
+        res = <span class="fn">max</span>(res, r<span class="op">-</span>l<span class="op">+</span><span class="nm">1</span>)
+    <span class="kw">return</span> res`},
+
+{cat:'sliding',lc:'LC 424',d:'medium',title:'Longest Repeating Char Replacement',
+ tagline:'Longest substring with at most k replacements to make all same char.',
+ tags:['freq map','maxCount trick'],
+ insight:'windowLen - maxCount <= k → valid. If not, slide left by 1. Key: maxCount never decreases (monotonic trick).',
+ code:`<span class="kw">def</span> <span class="fn">characterReplacement</span>(s, k):
+    count = defaultdict(<span class="fn">int</span>)
+    l = maxCount = res = <span class="nm">0</span>
+    <span class="kw">for</span> r <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(s)):
+        count[s[r]] <span class="op">+=</span> <span class="nm">1</span>
+        maxCount = <span class="fn">max</span>(maxCount, count[s[r]])
+        <span class="cm"># Shrink if invalid: replacements > k</span>
+        <span class="kw">if</span> (r<span class="op">-</span>l<span class="op">+</span><span class="nm">1</span>) <span class="op">-</span> maxCount <span class="op">></span> k:
+            count[s[l]] <span class="op">-=</span> <span class="nm">1</span>; l <span class="op">+=</span> <span class="nm">1</span>
+        res = <span class="fn">max</span>(res, r<span class="op">-</span>l<span class="op">+</span><span class="nm">1</span>)
+    <span class="kw">return</span> res`},
+
+{cat:'sliding',lc:'LC 76',d:'hard',title:'Minimum Window Substring',
+ tagline:'Smallest window in s containing all chars of t.',
+ tags:['two freq maps','have/need'],
+ insight:'Expand R until window has all t chars (have==need). Then shrink L to minimize. Track minimum.',
+ code:`<span class="kw">def</span> <span class="fn">minWindow</span>(s, t):
+    need = Counter(t); have = defaultdict(<span class="fn">int</span>)
+    formed = <span class="nm">0</span>; required = <span class="fn">len</span>(need)
+    l = <span class="nm">0</span>; res = <span class="st">""</span>; minLen = <span class="fn">float</span>(<span class="st">'inf'</span>)
+    <span class="kw">for</span> r, c <span class="kw">in</span> <span class="fn">enumerate</span>(s):
+        have[c] <span class="op">+=</span> <span class="nm">1</span>
+        <span class="kw">if</span> c <span class="kw">in</span> need <span class="kw">and</span> have[c] <span class="op">==</span> need[c]:
+            formed <span class="op">+=</span> <span class="nm">1</span>
+        <span class="kw">while</span> formed <span class="op">==</span> required:
+            <span class="kw">if</span> r<span class="op">-</span>l<span class="op">+</span><span class="nm">1</span> <span class="op"><</span> minLen:
+                minLen = r<span class="op">-</span>l<span class="op">+</span><span class="nm">1</span>; res = s[l:r<span class="op">+</span><span class="nm">1</span>]
+            have[s[l]] <span class="op">-=</span> <span class="nm">1</span>
+            <span class="kw">if</span> s[l] <span class="kw">in</span> need <span class="kw">and</span> have[s[l]] <span class="op"><</span> need[s[l]]:
+                formed <span class="op">-=</span> <span class="nm">1</span>
+            l <span class="op">+=</span> <span class="nm">1</span>
+    <span class="kw">return</span> res`},
+
+// ─── STACK ───────────────────────────────────────────────────────────────────
+{cat:'stack',lc:'LC 20',d:'easy',title:'Valid Parentheses',
+ tagline:'Check if bracket string is properly nested and closed.',
+ tags:['stack','match map'],
+ insight:'Push open brackets. On close bracket, pop and verify match. Stack must be empty at end.',
+ code:`<span class="kw">def</span> <span class="fn">isValid</span>(s):
+    stack = []
+    match = {<span class="st">')'</span>:<span class="st">'('</span>, <span class="st">'}'</span>:<span class="st">'{'</span>, <span class="st">']'</span>:<span class="st">'['</span>}
+    <span class="kw">for</span> c <span class="kw">in</span> s:
+        <span class="kw">if</span> c <span class="kw">in</span> match:
+            <span class="kw">if not</span> stack <span class="kw">or</span> stack[<span class="op">-</span><span class="nm">1</span>] <span class="op">!=</span> match[c]:
+                <span class="kw">return False</span>
+            stack.<span class="fn">pop</span>()
+        <span class="kw">else</span>:
+            stack.<span class="fn">append</span>(c)
+    <span class="kw">return not</span> stack`},
+
+{cat:'stack',lc:'LC 155',d:'medium',title:'Min Stack',
+ tagline:'Stack supporting push/pop/top and getMin in O(1).',
+ tags:['two stacks','min tracking'],
+ insight:'Maintain a parallel minStack. Push current minimum alongside each element.',
+ code:`<span class="kw">class</span> <span class="cl">MinStack</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        self.stack = []
+        self.minStack = []  <span class="cm"># tracks running min</span>
+
+    <span class="kw">def</span> <span class="fn">push</span>(self, val):
+        self.stack.<span class="fn">append</span>(val)
+        m = <span class="fn">min</span>(val, self.minStack[<span class="op">-</span><span class="nm">1</span>] <span class="kw">if</span> self.minStack <span class="kw">else</span> val)
+        self.minStack.<span class="fn">append</span>(m)
+
+    <span class="kw">def</span> <span class="fn">pop</span>(self):
+        self.stack.<span class="fn">pop</span>(); self.minStack.<span class="fn">pop</span>()
+
+    <span class="kw">def</span> <span class="fn">getMin</span>(self): <span class="kw">return</span> self.minStack[<span class="op">-</span><span class="nm">1</span>]`},
+
+{cat:'stack',lc:'LC 739',d:'medium',title:'Daily Temperatures',
+ tagline:'For each day, days until a warmer temperature.',
+ tags:['monotonic stack','decreasing'],
+ insight:'Maintain decreasing stack of indices. When warmer day found, pop and record gap. Classic "next greater element" pattern.',
+ code:`<span class="kw">def</span> <span class="fn">dailyTemperatures</span>(temps):
+    res = [<span class="nm">0</span>] <span class="op">*</span> <span class="fn">len</span>(temps)
+    stack = []  <span class="cm"># indices, decreasing temps</span>
+    <span class="kw">for</span> i, t <span class="kw">in</span> <span class="fn">enumerate</span>(temps):
+        <span class="kw">while</span> stack <span class="kw">and</span> t <span class="op">></span> temps[stack[<span class="op">-</span><span class="nm">1</span>]]:
+            j = stack.<span class="fn">pop</span>()
+            res[j] = i <span class="op">-</span> j
+        stack.<span class="fn">append</span>(i)
+    <span class="kw">return</span> res`},
+
+{cat:'stack',lc:'LC 84',d:'hard',title:'Largest Rectangle in Histogram',
+ tagline:'Find the largest rectangular area in a histogram.',
+ tags:['monotonic stack','extend left'],
+ insight:'Increasing stack of (height, start). When shorter bar found, pop and extend area back to popped index.',
+ code:`<span class="kw">def</span> <span class="fn">largestRectangleArea</span>(heights):
+    stack = []; res = <span class="nm">0</span>
+    <span class="kw">for</span> i, h <span class="kw">in</span> <span class="fn">enumerate</span>(heights):
+        start = i
+        <span class="kw">while</span> stack <span class="kw">and</span> stack[<span class="op">-</span><span class="nm">1</span>][<span class="nm">0</span>] <span class="op">></span> h:
+            ht, idx = stack.<span class="fn">pop</span>()
+            res = <span class="fn">max</span>(res, ht <span class="op">*</span> (i<span class="op">-</span>idx))
+            start = idx
+        stack.<span class="fn">append</span>((h, start))
+    <span class="kw">for</span> h, i <span class="kw">in</span> stack:
+        res = <span class="fn">max</span>(res, h <span class="op">*</span> (<span class="fn">len</span>(heights)<span class="op">-</span>i))
+    <span class="kw">return</span> res`},
+
+// ─── BINARY SEARCH ───────────────────────────────────────────────────────────
+{cat:'binary',lc:'LC 704',d:'easy',title:'Binary Search',
+ tagline:'Search sorted array in O(log n).',
+ tags:['classic binary search'],
+ insight:'L+R//2. If mid==target done. If mid<target: L=mid+1. Else R=mid-1. Stop when L>R.',
+ code:`<span class="kw">def</span> <span class="fn">search</span>(nums, target):
+    l, r = <span class="nm">0</span>, <span class="fn">len</span>(nums)<span class="op">-</span><span class="nm">1</span>
+    <span class="kw">while</span> l <span class="op"><=</span> r:
+        mid = (l<span class="op">+</span>r) <span class="op">//</span> <span class="nm">2</span>
+        <span class="kw">if</span>   nums[mid] <span class="op">==</span> target: <span class="kw">return</span> mid
+        <span class="kw">elif</span> nums[mid] <span class="op"><</span>  target: l = mid<span class="op">+</span><span class="nm">1</span>
+        <span class="kw">else</span>:                       r = mid<span class="op">-</span><span class="nm">1</span>
+    <span class="kw">return</span> <span class="op">-</span><span class="nm">1</span>`},
+
+{cat:'binary',lc:'LC 33',d:'medium',title:'Search Rotated Sorted Array',
+ tagline:'Binary search array rotated at an unknown pivot.',
+ tags:['rotated','one side sorted'],
+ insight:'One half is always sorted. Check which half. If target in sorted half → go there, else other half.',
+ code:`<span class="kw">def</span> <span class="fn">search</span>(nums, target):
+    l, r = <span class="nm">0</span>, <span class="fn">len</span>(nums)<span class="op">-</span><span class="nm">1</span>
+    <span class="kw">while</span> l <span class="op"><=</span> r:
+        mid = (l<span class="op">+</span>r) <span class="op">//</span> <span class="nm">2</span>
+        <span class="kw">if</span> nums[mid] <span class="op">==</span> target: <span class="kw">return</span> mid
+        <span class="kw">if</span> nums[l] <span class="op"><=</span> nums[mid]:  <span class="cm"># left sorted</span>
+            <span class="kw">if</span> nums[l] <span class="op"><=</span> target <span class="op"><</span> nums[mid]: r = mid<span class="op">-</span><span class="nm">1</span>
+            <span class="kw">else</span>: l = mid<span class="op">+</span><span class="nm">1</span>
+        <span class="kw">else</span>:                       <span class="cm"># right sorted</span>
+            <span class="kw">if</span> nums[mid] <span class="op"><</span> target <span class="op"><=</span> nums[r]: l = mid<span class="op">+</span><span class="nm">1</span>
+            <span class="kw">else</span>: r = mid<span class="op">-</span><span class="nm">1</span>
+    <span class="kw">return</span> <span class="op">-</span><span class="nm">1</span>`},
+
+{cat:'binary',lc:'LC 153',d:'medium',title:'Find Minimum in Rotated Array',
+ tagline:'Find the pivot/minimum in a rotated sorted array.',
+ tags:['binary search','rotation point'],
+ insight:'If nums[mid] > nums[r]: minimum is in right half. Else: it\'s in left half (including mid).',
+ code:`<span class="kw">def</span> <span class="fn">findMin</span>(nums):
+    l, r = <span class="nm">0</span>, <span class="fn">len</span>(nums)<span class="op">-</span><span class="nm">1</span>
+    <span class="kw">while</span> l <span class="op"><</span> r:
+        mid = (l<span class="op">+</span>r) <span class="op">//</span> <span class="nm">2</span>
+        <span class="kw">if</span> nums[mid] <span class="op">></span> nums[r]:
+            l = mid <span class="op">+</span> <span class="nm">1</span>  <span class="cm"># min in right</span>
+        <span class="kw">else</span>:
+            r = mid        <span class="cm"># mid could be min</span>
+    <span class="kw">return</span> nums[l]`},
+
+{cat:'binary',lc:'LC 4',d:'hard',title:'Median of Two Sorted Arrays',
+ tagline:'Find median of combined arrays in O(log(min(m,n))).',
+ tags:['binary partition','half total'],
+ insight:'Binary search partition on smaller array. Ensure left halves of both arrays are correct half. Check cross-conditions.',
+ code:`<span class="kw">def</span> <span class="fn">findMedianSortedArrays</span>(A, B):
+    <span class="kw">if</span> <span class="fn">len</span>(A) <span class="op">></span> <span class="fn">len</span>(B): A, B = B, A
+    m, n = <span class="fn">len</span>(A), <span class="fn">len</span>(B)
+    half = (m<span class="op">+</span>n) <span class="op">//</span> <span class="nm">2</span>
+    l, r = <span class="nm">0</span>, m<span class="op">-</span><span class="nm">1</span>
+    <span class="kw">while True</span>:
+        i = (l<span class="op">+</span>r) <span class="op">//</span> <span class="nm">2</span>; j = half<span class="op">-</span>i<span class="op">-</span><span class="nm">2</span>
+        Al = A[i]   <span class="kw">if</span> i  <span class="op">>=</span> <span class="nm">0</span> <span class="kw">else</span> <span class="fn">float</span>(<span class="st">'-inf'</span>)
+        Ar = A[i<span class="op">+</span><span class="nm">1</span>] <span class="kw">if</span> i<span class="op">+</span><span class="nm">1</span> <span class="op"><</span> m  <span class="kw">else</span> <span class="fn">float</span>(<span class="st">'inf'</span>)
+        Bl = B[j]   <span class="kw">if</span> j  <span class="op">>=</span> <span class="nm">0</span> <span class="kw">else</span> <span class="fn">float</span>(<span class="st">'-inf'</span>)
+        Br = B[j<span class="op">+</span><span class="nm">1</span>] <span class="kw">if</span> j<span class="op">+</span><span class="nm">1</span> <span class="op"><</span> n  <span class="kw">else</span> <span class="fn">float</span>(<span class="st">'inf'</span>)
+        <span class="kw">if</span>   Al <span class="op">></span> Br: r = i<span class="op">-</span><span class="nm">1</span>
+        <span class="kw">elif</span> Bl <span class="op">></span> Ar: l = i<span class="op">+</span><span class="nm">1</span>
+        <span class="kw">else</span>:
+            mx = <span class="fn">max</span>(Al, Bl)
+            <span class="kw">if</span> (m<span class="op">+</span>n) <span class="op">%</span> <span class="nm">2</span>: <span class="kw">return</span> <span class="fn">min</span>(Ar, Br)
+            <span class="kw">return</span> (mx <span class="op">+</span> <span class="fn">min</span>(Ar,Br)) <span class="op">/</span> <span class="nm">2</span>`},
+
+// ─── LINKED LIST ─────────────────────────────────────────────────────────────
+{cat:'linked',lc:'LC 206',d:'easy',title:'Reverse Linked List',
+ tagline:'Reverse a singly linked list in-place.',
+ tags:['prev/curr/next','iterative'],
+ insight:'Keep prev=None, curr=head. At each step: save next, point curr.next=prev, advance both.',
+ code:`<span class="kw">def</span> <span class="fn">reverseList</span>(head):
+    prev, curr = <span class="kw">None</span>, head
+    <span class="kw">while</span> curr:
+        nxt = curr.next  <span class="cm"># save</span>
+        curr.next = prev <span class="cm"># reverse</span>
+        prev = curr      <span class="cm"># advance prev</span>
+        curr = nxt       <span class="cm"># advance curr</span>
+    <span class="kw">return</span> prev`},
+
+{cat:'linked',lc:'LC 21',d:'easy',title:'Merge Two Sorted Lists',
+ tagline:'Merge two sorted linked lists into one sorted list.',
+ tags:['dummy head','pointer merge'],
+ insight:'Use dummy head. At each step take the smaller node. Continue with remainder when one list exhausts.',
+ code:`<span class="kw">def</span> <span class="fn">mergeTwoLists</span>(l1, l2):
+    dummy = curr = <span class="cl">ListNode</span>()
+    <span class="kw">while</span> l1 <span class="kw">and</span> l2:
+        <span class="kw">if</span> l1.val <span class="op"><=</span> l2.val:
+            curr.next = l1; l1 = l1.next
+        <span class="kw">else</span>:
+            curr.next = l2; l2 = l2.next
+        curr = curr.next
+    curr.next = l1 <span class="kw">or</span> l2
+    <span class="kw">return</span> dummy.next`},
+
+{cat:'linked',lc:'LC 143',d:'medium',title:'Reorder List',
+ tagline:'Reorder L0→Ln→L1→Ln-1→L2→Ln-2→...',
+ tags:['find mid','reverse 2nd half','merge'],
+ insight:'3 steps: (1) Find mid with slow/fast. (2) Reverse second half. (3) Interleave two halves.',
+ code:`<span class="kw">def</span> <span class="fn">reorderList</span>(head):
+    <span class="cm"># 1. Find mid</span>
+    s = f = head
+    <span class="kw">while</span> f <span class="kw">and</span> f.next: s = s.next; f = f.next.next
+    <span class="cm"># 2. Reverse second half</span>
+    prev, curr = <span class="kw">None</span>, s.next; s.next = <span class="kw">None</span>
+    <span class="kw">while</span> curr:
+        nxt = curr.next; curr.next = prev
+        prev = curr; curr = nxt
+    <span class="cm"># 3. Merge</span>
+    first, second = head, prev
+    <span class="kw">while</span> second:
+        tmp1, tmp2 = first.next, second.next
+        first.next = second; second.next = tmp1
+        first = tmp1; second = tmp2`},
+
+{cat:'linked',lc:'LC 141',d:'easy',title:'Linked List Cycle',
+ tagline:'Detect if linked list has a cycle.',
+ tags:["Floyd's","fast/slow pointers"],
+ insight:'Slow moves 1 step, fast moves 2. If they meet → cycle exists. Floyd\'s tortoise and hare.',
+ code:`<span class="kw">def</span> <span class="fn">hasCycle</span>(head):
+    slow = fast = head
+    <span class="kw">while</span> fast <span class="kw">and</span> fast.next:
+        slow = slow.next
+        fast = fast.next.next
+        <span class="kw">if</span> slow <span class="op">==</span> fast:
+            <span class="kw">return True</span>
+    <span class="kw">return False</span>
+
+<span class="cm"># For LC 142 (find cycle start):
+# After meeting, reset one ptr to head.
+# Move both 1 step. They meet at cycle start.</span>`},
+
+{cat:'linked',lc:'LC 23',d:'hard',title:'Merge K Sorted Lists',
+ tagline:'Merge k sorted linked lists efficiently.',
+ tags:['min heap','divide & conquer'],
+ insight:'Use min-heap of (val, index, node). Pop min, push its next. O(N log k) where N = total nodes.',
+ code:`<span class="kw">def</span> <span class="fn">mergeKLists</span>(lists):
+    heap = []
+    <span class="kw">for</span> i, node <span class="kw">in</span> <span class="fn">enumerate</span>(lists):
+        <span class="kw">if</span> node: heapq.<span class="fn">heappush</span>(heap, (node.val, i, node))
+    dummy = curr = <span class="cl">ListNode</span>()
+    <span class="kw">while</span> heap:
+        val, i, node = heapq.<span class="fn">heappop</span>(heap)
+        curr.next = node; curr = curr.next
+        <span class="kw">if</span> node.next:
+            heapq.<span class="fn">heappush</span>(heap, (node.next.val, i, node.next))
+    <span class="kw">return</span> dummy.next`},
+
+// ─── TREES ───────────────────────────────────────────────────────────────────
+{cat:'trees',lc:'LC 226',d:'easy',title:'Invert Binary Tree',
+ tagline:'Mirror a binary tree — swap left and right at every node.',
+ tags:['DFS','postorder','recursion'],
+ insight:'Post-order DFS: invert left, invert right, then swap. Or BFS with queue.',
+ code:`<span class="kw">def</span> <span class="fn">invertTree</span>(root):
+    <span class="kw">if not</span> root: <span class="kw">return None</span>
+    root.left  = <span class="fn">invertTree</span>(root.right)
+    root.right = <span class="fn">invertTree</span>(root.left)
+    <span class="cm"># Wait — do it correctly:</span>
+    <span class="kw">def</span> <span class="fn">dfs</span>(node):
+        <span class="kw">if not</span> node: <span class="kw">return</span>
+        node.left, node.right = node.right, node.left
+        <span class="fn">dfs</span>(node.left); <span class="fn">dfs</span>(node.right)
+    <span class="fn">dfs</span>(root); <span class="kw">return</span> root`},
+
+{cat:'trees',lc:'LC 104',d:'easy',title:'Maximum Depth of Binary Tree',
+ tagline:'Height of a binary tree.',
+ tags:['DFS','BFS','recursion'],
+ insight:'Recursive: 1 + max(depth(left), depth(right)). Base: return 0 for None.',
+ code:`<span class="kw">def</span> <span class="fn">maxDepth</span>(root):
+    <span class="kw">if not</span> root: <span class="kw">return</span> <span class="nm">0</span>
+    <span class="kw">return</span> <span class="nm">1</span> <span class="op">+</span> <span class="fn">max</span>(<span class="fn">maxDepth</span>(root.left),
+                     <span class="fn">maxDepth</span>(root.right))
+
+<span class="cm"># BFS variant: count levels in queue</span>`},
+
+{cat:'trees',lc:'LC 102',d:'medium',title:'Binary Tree Level Order Traversal',
+ tagline:'BFS — return nodes level by level.',
+ tags:['BFS','queue','deque'],
+ insight:'Use deque. Each iteration process exactly len(queue) nodes for that level. Append children.',
+ code:`<span class="kw">def</span> <span class="fn">levelOrder</span>(root):
+    <span class="kw">if not</span> root: <span class="kw">return</span> []
+    q = deque([root]); res = []
+    <span class="kw">while</span> q:
+        level = []
+        <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(q)):
+            node = q.<span class="fn">popleft</span>()
+            level.<span class="fn">append</span>(node.val)
+            <span class="kw">if</span> node.left:  q.<span class="fn">append</span>(node.left)
+            <span class="kw">if</span> node.right: q.<span class="fn">append</span>(node.right)
+        res.<span class="fn">append</span>(level)
+    <span class="kw">return</span> res`},
+
+{cat:'trees',lc:'LC 98',d:'medium',title:'Validate Binary Search Tree',
+ tagline:'Check if tree satisfies BST property at every node.',
+ tags:['bounds passing','DFS'],
+ insight:'Pass (min, max) bounds to each node. Node must satisfy min < val < max. Left: max=val, Right: min=val.',
+ code:`<span class="kw">def</span> <span class="fn">isValidBST</span>(root):
+    <span class="kw">def</span> <span class="fn">dfs</span>(node, lo, hi):
+        <span class="kw">if not</span> node: <span class="kw">return True</span>
+        <span class="kw">if not</span> (lo <span class="op"><</span> node.val <span class="op"><</span> hi):
+            <span class="kw">return False</span>
+        <span class="kw">return</span> (<span class="fn">dfs</span>(node.left,  lo, node.val) <span class="kw">and</span>
+                <span class="fn">dfs</span>(node.right, node.val, hi))
+    <span class="kw">return</span> <span class="fn">dfs</span>(root, <span class="fn">float</span>(<span class="st">'-inf'</span>), <span class="fn">float</span>(<span class="st">'inf'</span>))`},
+
+{cat:'trees',lc:'LC 124',d:'hard',title:'Binary Tree Maximum Path Sum',
+ tagline:'Max sum path between any two nodes.',
+ tags:['postorder DFS','global max','ignore negatives'],
+ insight:'DFS returns max single-branch gain. Update global with left+root+right. Ignore negative children (max with 0).',
+ code:`<span class="kw">def</span> <span class="fn">maxPathSum</span>(root):
+    res = [root.val]
+    <span class="kw">def</span> <span class="fn">dfs</span>(node):
+        <span class="kw">if not</span> node: <span class="kw">return</span> <span class="nm">0</span>
+        l = <span class="fn">max</span>(<span class="fn">dfs</span>(node.left),  <span class="nm">0</span>)
+        r = <span class="fn">max</span>(<span class="fn">dfs</span>(node.right), <span class="nm">0</span>)
+        res[<span class="nm">0</span>] = <span class="fn">max</span>(res[<span class="nm">0</span>], node.val <span class="op">+</span> l <span class="op">+</span> r)
+        <span class="kw">return</span> node.val <span class="op">+</span> <span class="fn">max</span>(l, r)
+    <span class="fn">dfs</span>(root)
+    <span class="kw">return</span> res[<span class="nm">0</span>]`},
+
+{cat:'trees',lc:'LC 297',d:'hard',title:'Serialize / Deserialize Binary Tree',
+ tagline:'Encode tree to string and decode back.',
+ tags:['preorder DFS','null markers','iterator'],
+ insight:'Preorder serialization with null markers. Deserialize using iterator — consume one token per recursive call.',
+ code:`<span class="kw">def</span> <span class="fn">serialize</span>(root):
+    <span class="kw">def</span> <span class="fn">dfs</span>(node):
+        <span class="kw">if not</span> node: <span class="kw">return</span> [<span class="st">'N'</span>]
+        <span class="kw">return</span> [<span class="fn">str</span>(node.val)] <span class="op">+</span> <span class="fn">dfs</span>(node.left) <span class="op">+</span> <span class="fn">dfs</span>(node.right)
+    <span class="kw">return</span> <span class="st">','</span>.<span class="fn">join</span>(<span class="fn">dfs</span>(root))
+
+<span class="kw">def</span> <span class="fn">deserialize</span>(data):
+    it = <span class="fn">iter</span>(data.<span class="fn">split</span>(<span class="st">','</span>))
+    <span class="kw">def</span> <span class="fn">dfs</span>():
+        val = <span class="fn">next</span>(it)
+        <span class="kw">if</span> val <span class="op">==</span> <span class="st">'N'</span>: <span class="kw">return None</span>
+        node = <span class="cl">TreeNode</span>(<span class="fn">int</span>(val))
+        node.left  = <span class="fn">dfs</span>()
+        node.right = <span class="fn">dfs</span>()
+        <span class="kw">return</span> node
+    <span class="kw">return</span> <span class="fn">dfs</span>()`},
+
+// ─── HEAP ────────────────────────────────────────────────────────────────────
+{cat:'heap',lc:'LC 703',d:'easy',title:'Kth Largest Element in Stream',
+ tagline:'Maintain running kth largest as numbers are added.',
+ tags:['min-heap of size k'],
+ insight:'Keep min-heap of size k. Smallest in heap = kth largest. Push new vals, pop if size > k.',
+ code:`<span class="kw">class</span> <span class="cl">KthLargest</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, k, nums):
+        self.k = k; self.heap = nums
+        heapq.<span class="fn">heapify</span>(self.heap)
+        <span class="kw">while</span> <span class="fn">len</span>(self.heap) <span class="op">></span> k:
+            heapq.<span class="fn">heappop</span>(self.heap)
+
+    <span class="kw">def</span> <span class="fn">add</span>(self, val):
+        heapq.<span class="fn">heappush</span>(self.heap, val)
+        <span class="kw">if</span> <span class="fn">len</span>(self.heap) <span class="op">></span> self.k:
+            heapq.<span class="fn">heappop</span>(self.heap)
+        <span class="kw">return</span> self.heap[<span class="nm">0</span>]`},
+
+{cat:'heap',lc:'LC 295',d:'hard',title:'Find Median from Data Stream',
+ tagline:'Efficiently find median as numbers stream in.',
+ tags:['two heaps','max-heap + min-heap'],
+ insight:'small = max-heap (inverted), large = min-heap. Balance sizes: |small| = |large| or |large|+1. Median from tops.',
+ code:`<span class="kw">class</span> <span class="cl">MedianFinder</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        self.small = []  <span class="cm"># max-heap (negate)</span>
+        self.large = []  <span class="cm"># min-heap</span>
+
+    <span class="kw">def</span> <span class="fn">addNum</span>(self, num):
+        heapq.<span class="fn">heappush</span>(self.small, <span class="op">-</span>num)
+        <span class="cm"># Ensure small's max <= large's min</span>
+        <span class="kw">if</span> self.large <span class="kw">and</span> <span class="op">-</span>self.small[<span class="nm">0</span>] <span class="op">></span> self.large[<span class="nm">0</span>]:
+            heapq.<span class="fn">heappush</span>(self.large, <span class="op">-</span>heapq.<span class="fn">heappop</span>(self.small))
+        <span class="cm"># Balance sizes</span>
+        <span class="kw">if</span> <span class="fn">len</span>(self.small) <span class="op">></span> <span class="fn">len</span>(self.large)<span class="op">+</span><span class="nm">1</span>:
+            heapq.<span class="fn">heappush</span>(self.large, <span class="op">-</span>heapq.<span class="fn">heappop</span>(self.small))
+        <span class="kw">elif</span> <span class="fn">len</span>(self.large) <span class="op">></span> <span class="fn">len</span>(self.small):
+            heapq.<span class="fn">heappush</span>(self.small, <span class="op">-</span>heapq.<span class="fn">heappop</span>(self.large))
+
+    <span class="kw">def</span> <span class="fn">findMedian</span>(self):
+        <span class="kw">if</span> <span class="fn">len</span>(self.small) <span class="op">></span> <span class="fn">len</span>(self.large): <span class="kw">return</span> <span class="op">-</span>self.small[<span class="nm">0</span>]
+        <span class="kw">return</span> (<span class="op">-</span>self.small[<span class="nm">0</span>] <span class="op">+</span> self.large[<span class="nm">0</span>]) <span class="op">/</span> <span class="nm">2</span>`},
+
+// ─── BACKTRACKING ────────────────────────────────────────────────────────────
+{cat:'backtrack',lc:'LC 78',d:'medium',title:'Subsets',
+ tagline:'Generate all 2^n subsets.',
+ tags:['decision tree','include/skip'],
+ insight:'At index i: branch 1 = include nums[i], branch 2 = skip. Recurse to i+1. Leaf = complete subset.',
+ code:`<span class="kw">def</span> <span class="fn">subsets</span>(nums):
+    res = []; subset = []
+    <span class="kw">def</span> <span class="fn">dfs</span>(i):
+        <span class="kw">if</span> i <span class="op">==</span> <span class="fn">len</span>(nums):
+            res.<span class="fn">append</span>(subset.<span class="fn">copy</span>()); <span class="kw">return</span>
+        subset.<span class="fn">append</span>(nums[i])  <span class="cm"># include</span>
+        <span class="fn">dfs</span>(i<span class="op">+</span><span class="nm">1</span>)
+        subset.<span class="fn">pop</span>()            <span class="cm"># skip</span>
+        <span class="fn">dfs</span>(i<span class="op">+</span><span class="nm">1</span>)
+    <span class="fn">dfs</span>(<span class="nm">0</span>); <span class="kw">return</span> res`},
+
+{cat:'backtrack',lc:'LC 39',d:'medium',title:'Combination Sum',
+ tagline:'Find all combos summing to target (reuse allowed).',
+ tags:['backtrack','no duplicate combos'],
+ insight:'At each step: include current candidate (stay at i, reuse), or skip to i+1. Prune when total > target.',
+ code:`<span class="kw">def</span> <span class="fn">combinationSum</span>(candidates, target):
+    res = []
+    <span class="kw">def</span> <span class="fn">dfs</span>(i, cur, total):
+        <span class="kw">if</span> total <span class="op">==</span> target: res.<span class="fn">append</span>(cur.<span class="fn">copy</span>()); <span class="kw">return</span>
+        <span class="kw">if</span> i <span class="op">>=</span> <span class="fn">len</span>(candidates) <span class="kw">or</span> total <span class="op">></span> target: <span class="kw">return</span>
+        cur.<span class="fn">append</span>(candidates[i])
+        <span class="fn">dfs</span>(i, cur, total<span class="op">+</span>candidates[i])  <span class="cm"># reuse</span>
+        cur.<span class="fn">pop</span>()
+        <span class="fn">dfs</span>(i<span class="op">+</span><span class="nm">1</span>, cur, total)               <span class="cm"># skip</span>
+    <span class="fn">dfs</span>(<span class="nm">0</span>, [], <span class="nm">0</span>); <span class="kw">return</span> res`},
+
+{cat:'backtrack',lc:'LC 51',d:'hard',title:'N-Queens',
+ tagline:'Place N queens on NxN board — no two attack each other.',
+ tags:['col/diag sets','backtrack'],
+ insight:'Track cols, pos-diags (r-c), neg-diags (r+c) as sets. For each row place queen in valid col, recurse.',
+ code:`<span class="kw">def</span> <span class="fn">solveNQueens</span>(n):
+    cols = <span class="fn">set</span>(); posD = <span class="fn">set</span>(); negD = <span class="fn">set</span>()
+    board = [[<span class="st">'.'</span>]<span class="op">*</span>n <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(n)]; res = []
+    <span class="kw">def</span> <span class="fn">bt</span>(r):
+        <span class="kw">if</span> r <span class="op">==</span> n:
+            res.<span class="fn">append</span>([<span class="st">''</span>.<span class="fn">join</span>(row) <span class="kw">for</span> row <span class="kw">in</span> board]); <span class="kw">return</span>
+        <span class="kw">for</span> c <span class="kw">in</span> <span class="fn">range</span>(n):
+            <span class="kw">if</span> c <span class="kw">in</span> cols <span class="kw">or</span> (r<span class="op">-</span>c) <span class="kw">in</span> posD <span class="kw">or</span> (r<span class="op">+</span>c) <span class="kw">in</span> negD: <span class="kw">continue</span>
+            cols.<span class="fn">add</span>(c); posD.<span class="fn">add</span>(r<span class="op">-</span>c); negD.<span class="fn">add</span>(r<span class="op">+</span>c)
+            board[r][c] = <span class="st">'Q'</span>
+            <span class="fn">bt</span>(r<span class="op">+</span><span class="nm">1</span>)
+            cols.<span class="fn">discard</span>(c); posD.<span class="fn">discard</span>(r<span class="op">-</span>c); negD.<span class="fn">discard</span>(r<span class="op">+</span>c)
+            board[r][c] = <span class="st">'.'</span>
+    <span class="fn">bt</span>(<span class="nm">0</span>); <span class="kw">return</span> res`},
+
+// ─── GRAPHS ──────────────────────────────────────────────────────────────────
+{cat:'graphs',lc:'LC 200',d:'medium',title:'Number of Islands',
+ tagline:'Count connected components (land=1) in grid.',
+ tags:['DFS flood fill','mark visited'],
+ insight:'Iterate grid. When cell=1, launch DFS marking all reachable 1s as 0 (visited). Each DFS = +1 island.',
+ code:`<span class="kw">def</span> <span class="fn">numIslands</span>(grid):
+    rows, cols = <span class="fn">len</span>(grid), <span class="fn">len</span>(grid[<span class="nm">0</span>])
+    count = <span class="nm">0</span>
+    <span class="kw">def</span> <span class="fn">dfs</span>(r, c):
+        <span class="kw">if</span> r <span class="kw">not in</span> <span class="fn">range</span>(rows) <span class="kw">or</span> c <span class="kw">not in</span> <span class="fn">range</span>(cols) <span class="kw">or</span> grid[r][c]<span class="op">!='1'</span>: <span class="kw">return</span>
+        grid[r][c] = <span class="st">'0'</span>
+        <span class="kw">for</span> dr,dc <span class="kw">in</span> [(1,0),(-1,0),(0,1),(0,-1)]: <span class="fn">dfs</span>(r+dr,c+dc)
+    <span class="kw">for</span> r <span class="kw">in</span> <span class="fn">range</span>(rows):
+        <span class="kw">for</span> c <span class="kw">in</span> <span class="fn">range</span>(cols):
+            <span class="kw">if</span> grid[r][c]<span class="op">=='1'</span>: <span class="fn">dfs</span>(r,c); count<span class="op">+=</span><span class="nm">1</span>
+    <span class="kw">return</span> count`},
+
+{cat:'graphs',lc:'LC 207',d:'medium',title:'Course Schedule (Cycle Detection)',
+ tagline:'Can all courses be finished? Detect cycle in directed graph.',
+ tags:['DFS','visiting set','topological'],
+ insight:'DFS with 3 states: unvisited, visiting (in stack), visited. Cycle = visiting node seen again.',
+ code:`<span class="kw">def</span> <span class="fn">canFinish</span>(numCourses, prerequisites):
+    adj = defaultdict(<span class="fn">list</span>)
+    <span class="kw">for</span> a, b <span class="kw">in</span> prerequisites: adj[b].<span class="fn">append</span>(a)
+    visiting = <span class="fn">set</span>()
+    <span class="kw">def</span> <span class="fn">dfs</span>(v):
+        <span class="kw">if</span> v <span class="kw">in</span> visiting: <span class="kw">return False</span>  <span class="cm"># cycle</span>
+        <span class="kw">if</span> adj[v] <span class="op">==</span> []:   <span class="kw">return True</span>   <span class="cm"># no deps</span>
+        visiting.<span class="fn">add</span>(v)
+        <span class="kw">for</span> nei <span class="kw">in</span> adj[v]:
+            <span class="kw">if not</span> <span class="fn">dfs</span>(nei): <span class="kw">return False</span>
+        visiting.<span class="fn">discard</span>(v); adj[v] = []  <span class="cm"># memo</span>
+        <span class="kw">return True</span>
+    <span class="kw">return all</span>(<span class="fn">dfs</span>(c) <span class="kw">for</span> c <span class="kw">in</span> <span class="fn">range</span>(numCourses))`},
+
+{cat:'graphs',lc:'LC 743',d:'medium',title:"Dijkstra's / Network Delay Time",
+ tagline:'Shortest path from source to all nodes (weighted graph).',
+ tags:["Dijkstra's",'min heap','visited set'],
+ insight:'Min-heap of (cost, node). Process cheapest node first. Skip if already visited. Relax neighbors.',
+ code:`<span class="kw">def</span> <span class="fn">networkDelayTime</span>(times, n, k):
+    adj = defaultdict(<span class="fn">list</span>)
+    <span class="kw">for</span> u,v,w <span class="kw">in</span> times: adj[u].<span class="fn">append</span>((v,w))
+    heap = [(0, k)]; visited = <span class="fn">set</span>(); dist = {}
+    <span class="kw">while</span> heap:
+        cost, node = heapq.<span class="fn">heappop</span>(heap)
+        <span class="kw">if</span> node <span class="kw">in</span> visited: <span class="kw">continue</span>
+        visited.<span class="fn">add</span>(node); dist[node] = cost
+        <span class="kw">for</span> nei, w <span class="kw">in</span> adj[node]:
+            <span class="kw">if</span> nei <span class="kw">not in</span> visited:
+                heapq.<span class="fn">heappush</span>(heap, (cost<span class="op">+</span>w, nei))
+    <span class="kw">return</span> <span class="fn">max</span>(dist.<span class="fn">values</span>()) <span class="kw">if</span> <span class="fn">len</span>(dist)<span class="op">==</span>n <span class="kw">else</span> <span class="op">-</span><span class="nm">1</span>`},
+
+// ─── 1D DP ───────────────────────────────────────────────────────────────────
+{cat:'dp1d',lc:'LC 70',d:'easy',title:'Climbing Stairs',
+ tagline:'Count ways to reach step n (1 or 2 steps at a time).',
+ tags:['fibonacci','bottom-up DP'],
+ insight:'dp[i] = dp[i-1] + dp[i-2]. Use two variables. Fibonacci sequence.',
+ code:`<span class="kw">def</span> <span class="fn">climbStairs</span>(n):
+    a, b = <span class="nm">1</span>, <span class="nm">1</span>  <span class="cm"># dp[1], dp[2]</span>
+    <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(n<span class="op">-</span><span class="nm">1</span>):
+        a, b = b, a<span class="op">+</span>b
+    <span class="kw">return</span> b
+
+<span class="cm"># General pattern:
+# dp = [0]*(n+1); dp[0]=dp[1]=1
+# for i in range(2,n+1): dp[i]=dp[i-1]+dp[i-2]</span>`},
+
+{cat:'dp1d',lc:'LC 213',d:'medium',title:'House Robber II',
+ tagline:'Max money from circular houses (no adjacent).',
+ tags:['two DP runs','skip first/last'],
+ insight:'Houses are circular → can\'t rob both first and last. Run house robber on [0..n-2] and [1..n-1]. Take max.',
+ code:`<span class="kw">def</span> <span class="fn">rob</span>(nums):
+    <span class="kw">def</span> <span class="fn">robLine</span>(houses):
+        prev2 = prev1 = <span class="nm">0</span>
+        <span class="kw">for</span> h <span class="kw">in</span> houses:
+            prev2, prev1 = prev1, <span class="fn">max</span>(prev1, prev2<span class="op">+</span>h)
+        <span class="kw">return</span> prev1
+    <span class="kw">if</span> <span class="fn">len</span>(nums) <span class="op">==</span> <span class="nm">1</span>: <span class="kw">return</span> nums[<span class="nm">0</span>]
+    <span class="kw">return</span> <span class="fn">max</span>(<span class="fn">robLine</span>(nums[:<span class="op">-</span><span class="nm">1</span>]), <span class="fn">robLine</span>(nums[<span class="nm">1</span>:]))`},
+
+{cat:'dp1d',lc:'LC 322',d:'medium',title:'Coin Change',
+ tagline:'Minimum coins to make amount.',
+ tags:['bottom-up DP','unbounded knapsack'],
+ insight:'dp[a] = min coins for amount a. For each amount, try all coins: dp[a] = min(dp[a], dp[a-coin]+1).',
+ code:`<span class="kw">def</span> <span class="fn">coinChange</span>(coins, amount):
+    dp = [<span class="fn">float</span>(<span class="st">'inf'</span>)] <span class="op">*</span> (amount<span class="op">+</span><span class="nm">1</span>)
+    dp[<span class="nm">0</span>] = <span class="nm">0</span>
+    <span class="kw">for</span> a <span class="kw">in</span> <span class="fn">range</span>(<span class="nm">1</span>, amount<span class="op">+</span><span class="nm">1</span>):
+        <span class="kw">for</span> c <span class="kw">in</span> coins:
+            <span class="kw">if</span> c <span class="op"><=</span> a:
+                dp[a] = <span class="fn">min</span>(dp[a], dp[a<span class="op">-</span>c] <span class="op">+</span> <span class="nm">1</span>)
+    <span class="kw">return</span> dp[amount] <span class="kw">if</span> dp[amount] <span class="op">!=</span> <span class="fn">float</span>(<span class="st">'inf'</span>) <span class="kw">else</span> <span class="op">-</span><span class="nm">1</span>`},
+
+{cat:'dp1d',lc:'LC 300',d:'medium',title:'Longest Increasing Subsequence',
+ tagline:'Length of LIS in an array.',
+ tags:['DP O(n²)','patience sort O(n log n)'],
+ insight:'dp[i] = LIS ending at i. For each i, scan j<i where nums[j]<nums[i]. O(n²). Use patience sort for O(n log n).',
+ code:`<span class="kw">def</span> <span class="fn">lengthOfLIS</span>(nums):
+    dp = [<span class="nm">1</span>] <span class="op">*</span> <span class="fn">len</span>(nums)
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="nm">1</span>, <span class="fn">len</span>(nums)):
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(i):
+            <span class="kw">if</span> nums[j] <span class="op"><</span> nums[i]:
+                dp[i] = <span class="fn">max</span>(dp[i], dp[j]<span class="op">+</span><span class="nm">1</span>)
+    <span class="kw">return</span> <span class="fn">max</span>(dp)
+
+<span class="cm"># O(n log n): tails array + bisect_left</span>`},
+
+// ─── 2D DP ───────────────────────────────────────────────────────────────────
+{cat:'dp2d',lc:'LC 1143',d:'medium',title:'Longest Common Subsequence',
+ tagline:'LCS of two strings.',
+ tags:['2D DP','char match recurrence'],
+ insight:'dp[i][j] = LCS of s1[:i], s2[:j]. Match: dp[i-1][j-1]+1. No match: max(dp[i-1][j], dp[i][j-1]).',
+ code:`<span class="kw">def</span> <span class="fn">longestCommonSubsequence</span>(t1, t2):
+    m, n = <span class="fn">len</span>(t1), <span class="fn">len</span>(t2)
+    dp = [[<span class="nm">0</span>]<span class="op">*</span>(n<span class="op">+</span><span class="nm">1</span>) <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(m<span class="op">+</span><span class="nm">1</span>)]
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="nm">1</span>, m<span class="op">+</span><span class="nm">1</span>):
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(<span class="nm">1</span>, n<span class="op">+</span><span class="nm">1</span>):
+            <span class="kw">if</span> t1[i<span class="op">-</span><span class="nm">1</span>] <span class="op">==</span> t2[j<span class="op">-</span><span class="nm">1</span>]:
+                dp[i][j] = dp[i<span class="op">-</span><span class="nm">1</span>][j<span class="op">-</span><span class="nm">1</span>] <span class="op">+</span> <span class="nm">1</span>
+            <span class="kw">else</span>:
+                dp[i][j] = <span class="fn">max</span>(dp[i<span class="op">-</span><span class="nm">1</span>][j], dp[i][j<span class="op">-</span><span class="nm">1</span>])
+    <span class="kw">return</span> dp[m][n]`},
+
+{cat:'dp2d',lc:'LC 72',d:'hard',title:'Edit Distance',
+ tagline:'Min operations (insert/delete/replace) to convert s to t.',
+ tags:['2D DP','Levenshtein'],
+ insight:'dp[i][j] = edit distance between s[:i] and t[:j]. Match: dp[i-1][j-1]. Else: 1 + min(insert, delete, replace).',
+ code:`<span class="kw">def</span> <span class="fn">minDistance</span>(word1, word2):
+    m, n = <span class="fn">len</span>(word1), <span class="fn">len</span>(word2)
+    dp = [[<span class="nm">0</span>]<span class="op">*</span>(n<span class="op">+</span><span class="nm">1</span>) <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(m<span class="op">+</span><span class="nm">1</span>)]
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(m<span class="op">+</span><span class="nm">1</span>): dp[i][<span class="nm">0</span>] = i
+    <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(n<span class="op">+</span><span class="nm">1</span>): dp[<span class="nm">0</span>][j] = j
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="nm">1</span>, m<span class="op">+</span><span class="nm">1</span>):
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(<span class="nm">1</span>, n<span class="op">+</span><span class="nm">1</span>):
+            <span class="kw">if</span> word1[i<span class="op">-</span><span class="nm">1</span>] <span class="op">==</span> word2[j<span class="op">-</span><span class="nm">1</span>]:
+                dp[i][j] = dp[i<span class="op">-</span><span class="nm">1</span>][j<span class="op">-</span><span class="nm">1</span>]
+            <span class="kw">else</span>:
+                dp[i][j] = <span class="nm">1</span> <span class="op">+</span> <span class="fn">min</span>(dp[i<span class="op">-</span><span class="nm">1</span>][j], dp[i][j<span class="op">-</span><span class="nm">1</span>], dp[i<span class="op">-</span><span class="nm">1</span>][j<span class="op">-</span><span class="nm">1</span>])
+    <span class="kw">return</span> dp[m][n]`},
+
+// ─── GREEDY ──────────────────────────────────────────────────────────────────
+{cat:'greedy',lc:'LC 55',d:'medium',title:'Jump Game',
+ tagline:'Can you reach the last index?',
+ tags:['max reach','greedy forward'],
+ insight:'Track maxReach. At each index check if i > maxReach (stuck). Update maxReach = max(maxReach, i+nums[i]).',
+ code:`<span class="kw">def</span> <span class="fn">canJump</span>(nums):
+    maxReach = <span class="nm">0</span>
+    <span class="kw">for</span> i, n <span class="kw">in</span> <span class="fn">enumerate</span>(nums):
+        <span class="kw">if</span> i <span class="op">></span> maxReach: <span class="kw">return False</span>
+        maxReach = <span class="fn">max</span>(maxReach, i<span class="op">+</span>n)
+    <span class="kw">return True</span>`},
+
+{cat:'greedy',lc:'LC 45',d:'medium',title:'Jump Game II',
+ tagline:'Minimum jumps to reach the last index.',
+ tags:['greedy','window expansion'],
+ insight:'Greedy: expand window to max reach. When you pass current window end, you must jump (increment count).',
+ code:`<span class="kw">def</span> <span class="fn">jump</span>(nums):
+    jumps = curEnd = curFar = <span class="nm">0</span>
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(nums)<span class="op">-</span><span class="nm">1</span>):
+        curFar = <span class="fn">max</span>(curFar, i<span class="op">+</span>nums[i])
+        <span class="kw">if</span> i <span class="op">==</span> curEnd:
+            jumps <span class="op">+=</span> <span class="nm">1</span>
+            curEnd = curFar
+    <span class="kw">return</span> jumps`},
+
+// ─── INTERVALS ───────────────────────────────────────────────────────────────
+{cat:'intervals',lc:'LC 57',d:'medium',title:'Insert Interval',
+ tagline:'Insert and merge a new interval into sorted non-overlapping intervals.',
+ tags:['three phases','overlap check'],
+ insight:'Phase 1: add all before new. Phase 2: merge overlapping (max end). Phase 3: add remaining.',
+ code:`<span class="kw">def</span> <span class="fn">insert</span>(intervals, newInterval):
+    res = []; i = <span class="nm">0</span>; n = <span class="fn">len</span>(intervals)
+    <span class="cm"># Phase 1: before new interval</span>
+    <span class="kw">while</span> i <span class="op"><</span> n <span class="kw">and</span> intervals[i][<span class="nm">1</span>] <span class="op"><</span> newInterval[<span class="nm">0</span>]:
+        res.<span class="fn">append</span>(intervals[i]); i<span class="op">+=</span><span class="nm">1</span>
+    <span class="cm"># Phase 2: overlapping</span>
+    <span class="kw">while</span> i <span class="op"><</span> n <span class="kw">and</span> intervals[i][<span class="nm">0</span>] <span class="op"><=</span> newInterval[<span class="nm">1</span>]:
+        newInterval[<span class="nm">0</span>] = <span class="fn">min</span>(newInterval[<span class="nm">0</span>], intervals[i][<span class="nm">0</span>])
+        newInterval[<span class="nm">1</span>] = <span class="fn">max</span>(newInterval[<span class="nm">1</span>], intervals[i][<span class="nm">1</span>]); i<span class="op">+=</span><span class="nm">1</span>
+    res.<span class="fn">append</span>(newInterval)
+    res.<span class="fn">extend</span>(intervals[i:])
+    <span class="kw">return</span> res`},
+
+{cat:'intervals',lc:'LC 56',d:'medium',title:'Merge Intervals',
+ tagline:'Merge all overlapping intervals.',
+ tags:['sort by start','extend end'],
+ insight:'Sort by start. For each interval: if overlaps with last in res (start <= last end), extend end. Else append.',
+ code:`<span class="kw">def</span> <span class="fn">merge</span>(intervals):
+    intervals.<span class="fn">sort</span>()
+    res = [intervals[<span class="nm">0</span>]]
+    <span class="kw">for</span> start, end <span class="kw">in</span> intervals[<span class="nm">1</span>:]:
+        <span class="kw">if</span> start <span class="op"><=</span> res[<span class="op">-</span><span class="nm">1</span>][<span class="nm">1</span>]:
+            res[<span class="op">-</span><span class="nm">1</span>][<span class="nm">1</span>] = <span class="fn">max</span>(res[<span class="op">-</span><span class="nm">1</span>][<span class="nm">1</span>], end)
+        <span class="kw">else</span>:
+            res.<span class="fn">append</span>([start, end])
+    <span class="kw">return</span> res`},
+
+{cat:'intervals',lc:'LC 435',d:'medium',title:'Non-Overlapping Intervals',
+ tagline:'Min intervals to remove to make rest non-overlapping.',
+ tags:['greedy','sort by end'],
+ insight:'Sort by end. Greedily keep interval with earliest end (less conflicts). Count removed = overlaps with current end.',
+ code:`<span class="kw">def</span> <span class="fn">eraseOverlapIntervals</span>(intervals):
+    intervals.<span class="fn">sort</span>(key=<span class="kw">lambda</span> x: x[<span class="nm">1</span>])
+    removed = <span class="nm">0</span>
+    prevEnd = <span class="fn">float</span>(<span class="st">'-inf'</span>)
+    <span class="kw">for</span> start, end <span class="kw">in</span> intervals:
+        <span class="kw">if</span> start <span class="op">>=</span> prevEnd:
+            prevEnd = end  <span class="cm"># keep this interval</span>
+        <span class="kw">else</span>:
+            removed <span class="op">+=</span> <span class="nm">1</span>  <span class="cm"># remove overlap</span>
+    <span class="kw">return</span> removed`},
+
+// ─── MATH & GEOMETRY ─────────────────────────────────────────────────────────
+{cat:'math',lc:'LC 48',d:'medium',title:'Rotate Image',
+ tagline:'Rotate NxN matrix 90° clockwise in-place.',
+ tags:['transpose','reverse rows'],
+ insight:'Step 1: Transpose (swap matrix[i][j] ↔ matrix[j][i]). Step 2: Reverse each row.',
+ code:`<span class="kw">def</span> <span class="fn">rotate</span>(matrix):
+    n = <span class="fn">len</span>(matrix)
+    <span class="cm"># Step 1: Transpose</span>
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(n):
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(i<span class="op">+</span><span class="nm">1</span>, n):
+            matrix[i][j], matrix[j][i] = matrix[j][i], matrix[i][j]
+    <span class="cm"># Step 2: Reverse each row</span>
+    <span class="kw">for</span> row <span class="kw">in</span> matrix:
+        row.<span class="fn">reverse</span>()`},
+
+{cat:'math',lc:'LC 54',d:'medium',title:'Spiral Matrix',
+ tagline:'Return all elements in spiral order.',
+ tags:['4 boundaries','shrink inward'],
+ insight:'Maintain top/bottom/left/right boundaries. Traverse 4 directions, shrink boundary after each pass.',
+ code:`<span class="kw">def</span> <span class="fn">spiralOrder</span>(matrix):
+    top, bot = <span class="nm">0</span>, <span class="fn">len</span>(matrix)<span class="op">-</span><span class="nm">1</span>
+    left, right = <span class="nm">0</span>, <span class="fn">len</span>(matrix[<span class="nm">0</span>])<span class="op">-</span><span class="nm">1</span>
+    res = []
+    <span class="kw">while</span> top <span class="op"><=</span> bot <span class="kw">and</span> left <span class="op"><=</span> right:
+        <span class="kw">for</span> c <span class="kw">in</span> <span class="fn">range</span>(left, right<span class="op">+</span><span class="nm">1</span>):  res.<span class="fn">append</span>(matrix[top][c])
+        top <span class="op">+=</span> <span class="nm">1</span>
+        <span class="kw">for</span> r <span class="kw">in</span> <span class="fn">range</span>(top, bot<span class="op">+</span><span class="nm">1</span>):    res.<span class="fn">append</span>(matrix[r][right])
+        right <span class="op">-=</span> <span class="nm">1</span>
+        <span class="kw">if</span> top <span class="op"><=</span> bot:
+            <span class="kw">for</span> c <span class="kw">in</span> <span class="fn">range</span>(right, left<span class="op">-</span><span class="nm">1</span>, <span class="op">-</span><span class="nm">1</span>): res.<span class="fn">append</span>(matrix[bot][c])
+            bot <span class="op">-=</span> <span class="nm">1</span>
+        <span class="kw">if</span> left <span class="op"><=</span> right:
+            <span class="kw">for</span> r <span class="kw">in</span> <span class="fn">range</span>(bot, top<span class="op">-</span><span class="nm">1</span>, <span class="op">-</span><span class="nm">1</span>): res.<span class="fn">append</span>(matrix[r][left])
+            left <span class="op">+=</span> <span class="nm">1</span>
+    <span class="kw">return</span> res`},
+
+// ─── BIT MANIPULATION ────────────────────────────────────────────────────────
+{cat:'bits',lc:'LC 136',d:'easy',title:'Single Number',
+ tagline:'Find the element that appears only once (others appear twice).',
+ tags:['XOR','x^x=0'],
+ insight:'XOR of a number with itself = 0. XOR of 0 with a number = that number. XOR all → duplicates cancel.',
+ code:`<span class="kw">def</span> <span class="fn">singleNumber</span>(nums):
+    res = <span class="nm">0</span>
+    <span class="kw">for</span> n <span class="kw">in</span> nums:
+        res <span class="op">^=</span> n
+    <span class="kw">return</span> res
+
+<span class="cm"># Key XOR properties:
+# a ^ a = 0  (same XOR = 0)
+# a ^ 0 = a  (XOR with 0 = identity)
+# XOR is commutative and associative</span>`},
+
+{cat:'bits',lc:'LC 191',d:'easy',title:'Number of 1 Bits (Hamming Weight)',
+ tagline:'Count set bits in integer.',
+ tags:["Brian Kernighan's","n & (n-1)"],
+ insight:'n & (n-1) removes the lowest set bit each time. Count iterations until n=0.',
+ code:`<span class="kw">def</span> <span class="fn">hammingWeight</span>(n):
+    count = <span class="nm">0</span>
+    <span class="kw">while</span> n:
+        n <span class="op">&=</span> (n<span class="op">-</span><span class="nm">1</span>)  <span class="cm"># removes lowest set bit</span>
+        count <span class="op">+=</span> <span class="nm">1</span>
+    <span class="kw">return</span> count
+
+<span class="cm"># Alt: bin(n).count('1')
+# Each n & (n-1) clears exactly one 1-bit</span>`},
+
+{cat:'bits',lc:'LC 268',d:'easy',title:'Missing Number',
+ tagline:'Find missing number in [0..n].',
+ tags:['XOR','Gauss sum'],
+ insight:'Method 1: XOR all indices with all values — duplicates cancel, missing remains. Method 2: Gauss formula n*(n+1)/2 - sum.',
+ code:`<span class="kw">def</span> <span class="fn">missingNumber</span>(nums):
+    <span class="cm"># Gauss formula — simplest</span>
+    n = <span class="fn">len</span>(nums)
+    <span class="kw">return</span> n<span class="op">*</span>(n<span class="op">+</span><span class="nm">1</span>)<span class="op">//</span><span class="nm">2</span> <span class="op">-</span> <span class="fn">sum</span>(nums)
+
+<span class="cm"># XOR version:
+# res = len(nums)
+# for i, n in enumerate(nums):
+#     res ^= i ^ n
+# return res</span>`},
+
+// ─── ADVANCED GRAPHS ─────────────────────────────────────────────────────────
+{cat:'advanced',lc:'LC 684',d:'medium',title:'Union Find (Redundant Connection)',
+ tagline:'Find edge that creates a cycle — Union-Find data structure.',
+ tags:['Union-Find','path compression','rank'],
+ insight:'Process edges. For each, find roots of both endpoints. If same root → cycle (this is the edge). Else union.',
+ code:`<span class="kw">def</span> <span class="fn">findRedundantConnection</span>(edges):
+    parent = <span class="fn">list</span>(<span class="fn">range</span>(<span class="fn">len</span>(edges)<span class="op">+</span><span class="nm">1</span>))
+    rank   = [<span class="nm">1</span>] <span class="op">*</span> (<span class="fn">len</span>(edges)<span class="op">+</span><span class="nm">1</span>)
+    <span class="kw">def</span> <span class="fn">find</span>(x):
+        <span class="kw">while</span> parent[x] <span class="op">!=</span> x:
+            parent[x] = parent[parent[x]]  <span class="cm"># path compress</span>
+            x = parent[x]
+        <span class="kw">return</span> x
+    <span class="kw">def</span> <span class="fn">union</span>(x, y):
+        px, py = <span class="fn">find</span>(x), <span class="fn">find</span>(y)
+        <span class="kw">if</span> px <span class="op">==</span> py: <span class="kw">return False</span>
+        <span class="kw">if</span> rank[px] <span class="op">>=</span> rank[py]: parent[py] = px; rank[px] <span class="op">+=</span> <span class="nm">1</span>
+        <span class="kw">else</span>:                    parent[px] = py; rank[py] <span class="op">+=</span> <span class="nm">1</span>
+        <span class="kw">return True</span>
+    <span class="kw">for</span> u, v <span class="kw">in</span> edges:
+        <span class="kw">if not</span> <span class="fn">union</span>(u, v): <span class="kw">return</span> [u, v]`},
+
+{cat:'advanced',lc:'LC 269',d:'hard',title:'Alien Dictionary (Topological Sort)',
+ tagline:'Derive character order from sorted alien dictionary words.',
+ tags:['topological sort','BFS Kahn','in-degree'],
+ insight:'Extract ordering from adjacent word pairs → build directed graph. Topological sort (Kahn\'s BFS). Cycle = invalid.',
+ code:`<span class="cm"># Kahn's BFS topological sort</span>
+<span class="kw">def</span> <span class="fn">topoSort</span>(adj, nodes):
+    in_deg = {n: <span class="nm">0</span> <span class="kw">for</span> n <span class="kw">in</span> nodes}
+    <span class="kw">for</span> u <span class="kw">in</span> adj:
+        <span class="kw">for</span> v <span class="kw">in</span> adj[u]: in_deg[v] <span class="op">+=</span> <span class="nm">1</span>
+    q = deque([n <span class="kw">for</span> n <span class="kw">in</span> nodes <span class="kw">if</span> in_deg[n] <span class="op">==</span> <span class="nm">0</span>])
+    order = []
+    <span class="kw">while</span> q:
+        node = q.<span class="fn">popleft</span>(); order.<span class="fn">append</span>(node)
+        <span class="kw">for</span> nei <span class="kw">in</span> adj[node]:
+            in_deg[nei] <span class="op">-=</span> <span class="nm">1</span>
+            <span class="kw">if</span> in_deg[nei] <span class="op">==</span> <span class="nm">0</span>: q.<span class="fn">append</span>(nei)
+    <span class="kw">return</span> order <span class="kw">if</span> <span class="fn">len</span>(order) <span class="op">==</span> <span class="fn">len</span>(nodes) <span class="kw">else</span> <span class="st">""</span>`},
+];
+
+// ─── STATE ──────────────────────────────────────────────────────────────────
+let activeFilter = 'all';
+let filtered = [];
+let idx = 0;
+let flipped = false;
+let ratings = {}; // 0=again, 1=hard, 2=got
+
+function getColor(catId) {
+  const c = CATS.find(c => c.id === catId);
+  return c ? c.color : '#38bdf8';
+}
+
+function getFiltered() {
+  if (activeFilter === 'all') return CARDS;
+  return CARDS.filter(c => c.cat === activeFilter);
+}
+
+function renderSidebar() {
+  const el = document.getElementById('catList');
+  let html = `
+  <div class="cat-section-label">Overview</div>
+  <div class="cat-btn ${activeFilter==='all'?'active':''}" style="--cat-color:#22d3ee" onclick="setFilter('all')">
+    <span class="cat-dot" style="background:#22d3ee"></span>
+    <span class="cat-name">All Patterns</span>
+    <span class="cat-count">${CARDS.length}</span>
+  </div>
+  <div class="cat-section-label">Categories</div>`;
+  
+  CATS.forEach(cat => {
+    const total = CARDS.filter(c => c.cat === cat.id).length;
+    const mastered = CARDS.filter(c => c.cat === cat.id && ratings[c.title] === 2).length;
+    const isActive = activeFilter === cat.id;
+    html += `<div class="cat-btn ${isActive?'active':''}" style="--cat-color:${cat.color}" onclick="setFilter('${cat.id}')">
+      <span class="cat-dot" style="background:${cat.color}"></span>
+      <span class="cat-name">${cat.name}</span>
+      <span class="cat-count">${total}</span>
+      ${mastered > 0 ? `<span class="cat-mastered" style="color:${cat.color}">${mastered}✓</span>` : ''}
+    </div>`;
+  });
+  el.innerHTML = html;
+}
+
+function renderCard() {
+  const card = filtered[idx];
+  const color = getColor(card.cat);
+  const catName = CATS.find(c => c.id === card.cat)?.name || '';
+  
+  document.getElementById('cardFront').innerHTML = `
+    <div class="card-meta">
+      <span class="card-category-tag" style="color:${color};border-color:${color}40;background:${color}10">${catName}</span>
+      <span class="card-lc">${card.lc} · <span class="diff-${card.d}">${card.d.toUpperCase()}</span></span>
+    </div>
+    <div class="card-title">${card.title}</div>
+    <div class="card-tagline">${card.tagline}</div>
+    <div class="card-tags">${card.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+    <div class="flip-hint">FLIP TO SEE PATTERN CODE</div>
+  `;
+  
+  document.getElementById('cardBack').innerHTML = `
+    <div class="back-label" style="color:${color}">// PATTERN · ${card.title}</div>
+    <div class="code-wrap"><pre>${card.code}</pre></div>
+    <div class="insight-box" style="--accent-cur:${color};border-left-color:${color}"><strong>💡 Key:</strong> ${card.insight}</div>
+  `;
+  
+  // Reset flip
+  document.getElementById('cardInner').classList.remove('flipped');
+  flipped = false;
+  document.getElementById('masteryRow').classList.remove('show');
+  
+  // Update nav
+  document.getElementById('cardPos').textContent = `${idx+1} / ${filtered.length}`;
+  document.getElementById('prevBtn').disabled = idx === 0;
+  document.getElementById('nextBtn').disabled = idx === filtered.length - 1;
+  
+  // Update topbar
+  const cat = CATS.find(c => c.id === (activeFilter === 'all' ? card.cat : activeFilter));
+  document.getElementById('topbarCat').textContent = activeFilter === 'all' ? 'PATTERNS' : cat?.name.toUpperCase() || 'PATTERNS';
+  
+  updateStats();
+  updateProgress();
+  syncMobileNav();
+}
+
+function flip() {
+  flipped = !flipped;
+  document.getElementById('cardInner').classList.toggle('flipped', flipped);
+  document.getElementById('masteryRow').classList.toggle('show', flipped);
+  syncMobileNav();
+}
+
+function next() {
+  if (idx < filtered.length - 1) { idx++; renderCard(); }
+}
+
+function prev() {
+  if (idx > 0) { idx--; renderCard(); }
+}
+
+function rate(r) {
+  const card = filtered[idx];
+  ratings[card.title] = r;
+  updateStats();
+  updateProgress();
+  renderSidebar();
+  if (idx < filtered.length - 1) setTimeout(next, 200);
+}
+
+function setFilter(f) {
+  activeFilter = f;
+  filtered = getFiltered();
+  idx = 0;
+  renderSidebar();
+  renderMobileCatStrip();
+  renderCard();
+}
+
+function updateStats() {
+  const f = filtered;
+  document.getElementById('sTotal').textContent = f.length;
+  document.getElementById('sMastered').textContent = f.filter(c => ratings[c.title] === 2).length;
+  document.getElementById('sHard').textContent = f.filter(c => ratings[c.title] === 1).length;
+  document.getElementById('sAgain').textContent = f.filter(c => ratings[c.title] === 0).length;
+}
+
+function updateProgress() {
+  const total = CARDS.length;
+  const done = CARDS.filter(c => ratings[c.title] === 2).length;
+  const pct = total ? (done / total * 100) : 0;
+  document.getElementById('progFill').style.width = pct + '%';
+  document.getElementById('progText').textContent = `${done} / ${total}`;
+}
+
+// Keyboard
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight') next();
+  if (e.key === 'ArrowLeft') prev();
+  if (e.key === ' ') { e.preventDefault(); flip(); }
+  if (e.key === '1') rate(0);
+  if (e.key === '2') rate(1);
+  if (e.key === '3') rate(2);
+});
+
+// ── Mobile category strip ────────────────────────────────────────────────
+function renderMobileCatStrip() {
+  const el = document.getElementById('mobileCatStrip');
+  if (!el) return;
+  let html = `<button class="mcat-pill ${activeFilter==='all'?'active':''}" style="--pill-color:#22d3ee" onclick="setFilter('all')">All (${CARDS.length})</button>`;
+  CATS.forEach(cat => {
+    const total = CARDS.filter(c => c.cat === cat.id).length;
+    html += `<button class="mcat-pill ${activeFilter===cat.id?'active':''}" style="--pill-color:${cat.color};${activeFilter===cat.id?`border-color:${cat.color};background:${cat.color}18`:''}" onclick="setFilter('${cat.id}')">${cat.short} (${total})</button>`;
+  });
+  el.innerHTML = html;
+}
+
+function syncMobileNav() {
+  // Sync card position
+  const mPos = document.getElementById('mCardPos');
+  if (mPos) mPos.textContent = `${idx+1} / ${filtered.length}`;
+  // Sync prev/next buttons
+  const mPrev = document.getElementById('mPrevBtn');
+  const mNext = document.getElementById('mNextBtn');
+  if (mPrev) mPrev.disabled = idx === 0;
+  if (mNext) mNext.disabled = idx === filtered.length - 1;
+  // Sync mastery visibility
+  const mm = document.getElementById('mobileMastery');
+  if (mm) mm.classList.toggle('show', flipped);
+}
+
+// Init
+filtered = getFiltered();
+renderSidebar();
+renderMobileCatStrip();
+renderCard();
+
+// ── PWA: Register Service Worker ──────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(reg => console.log('SW registered:', reg.scope))
+      .catch(err => console.log('SW failed:', err));
+  });
+}
+</script>
+</body>
+</html>
