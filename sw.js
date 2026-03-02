@@ -5,11 +5,11 @@ const CACHE_NAME = 'nc150-v1';
 
 // All assets to pre-cache on install
 const PRECACHE_URLS = [
-  '/index.html',
-  '/manifest.json',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png',
-  '/icons/apple-touch-icon.png',
+  './index.html',
+  './manifest.json',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
+  './icons/apple-touch-icon.png',
 ];
 
 // Install: cache all core assets

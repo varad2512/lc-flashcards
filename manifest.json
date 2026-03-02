@@ -2,7 +2,7 @@
   "name": "NeetCode 150 Flashcards",
   "short_name": "NC Flashcards",
   "description": "LeetCode pattern flashcards for IC5/IC6 interview prep",
-  "start_url": "/index.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#080c14",
   "theme_color": "#080c14",
